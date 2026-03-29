@@ -1,2 +1,7 @@
 # PfRadar
-PF Radar is a web-based portfolio analytics tool that uses real NSE/BSE data and financial models to evaluate returns, risk, and diversification, helping users optimize portfolios through an intuitive dashboard.
+
+Monorepo for portfolio analytics.
+
+## Python engine
+
+See **[engine/README.md](engine/README.md)** for the quantitative **Modern Portfolio Theory** package (data ingest, optimization, JSON reports, tests).
