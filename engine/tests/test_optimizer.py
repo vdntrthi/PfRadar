@@ -17,7 +17,7 @@ def test_min_variance_two_asset_diagonal_inverse_variance():
     """Diagonal Σ: long-only minimum variance is w_i ∝ 1/σ_i^2 (normalize)."""
     v0, v1 = 0.0004, 0.0001  # daily variances
     cov = np.diag([v0, v1])
-    w = min_variance_weights(cov)
+    w = min_variance_weights(cov, max_weight=1.0)
     inv = np.array([1.0 / v0, 1.0 / v1])
     w_exp = inv / inv.sum()
     assert w[0] + w[1] == pytest.approx(1.0)

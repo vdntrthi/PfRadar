@@ -49,8 +49,7 @@ def portfolio_mu_sigma_from_daily(
     return _annualized_portfolio_mean(mu_d, w), _annualized_portfolio_std(cov_d, w)
 
 
-def _normalize_weights(w: np.ndarray) -> np.ndarray:
-    max_weight = 0.4
+def _normalize_weights(w: np.ndarray, max_weight: float = 0.4) -> np.ndarray:
     w = np.clip(w, 0.0, max_weight)
     s = w.sum()
     if s <= 1e-12:
@@ -58,12 +57,23 @@ def _normalize_weights(w: np.ndarray) -> np.ndarray:
     return w / s
 
 
-def min_variance_weights(cov_d: np.ndarray, *, x0: np.ndarray | None = None) -> np.ndarray:
+def min_variance_weights(
+    cov_d: np.ndarray,
+    *,
+    x0: np.ndarray | None = None,
+    max_weight: float = 0.4,
+) -> np.ndarray:
     """
     Minimize w^T Sigma w subject to sum w = 1, w >= 0.
 
     Uses a small multi-start grid: SLSQP can stagnate at the barycenter for
     ill-scaled problems; we take the best feasible objective found.
+
+    Parameters
+    ----------
+    max_weight
+        Per-asset upper bound. Default 0.4 (40%) for real portfolios.
+        Pass 1.0 to allow unconstrained long-only (useful for unit tests).
     """
     cov_d = np.asarray(cov_d, dtype=float)
     n = cov_d.shape[0]
@@ -74,7 +84,6 @@ def min_variance_weights(cov_d: np.ndarray, *, x0: np.ndarray | None = None) -> 
         return float(w @ cov_d @ w)
 
     cons = ({"type": "eq", "fun": lambda w: float(np.sum(w) - 1.0)},)
-    max_weight = 0.4  
     bounds = tuple((0.0, max_weight) for _ in range(n))
 
     candidates: list[np.ndarray] = []
@@ -99,7 +108,7 @@ def min_variance_weights(cov_d: np.ndarray, *, x0: np.ndarray | None = None) -> 
             constraints=cons,
             options={"maxiter": 800, "ftol": 1e-12},
         )
-        x = _normalize_weights(res.x)
+        x = _normalize_weights(res.x, max_weight)
         obj = objective(x)
         if obj < best_obj - 1e-15:
             best_obj = obj
@@ -109,7 +118,10 @@ def min_variance_weights(cov_d: np.ndarray, *, x0: np.ndarray | None = None) -> 
     if best_x is None:
         raise OptimizationFailedError("Min variance: no candidate produced weights")
     if not ok_any:
-        logger.warning("min_variance: optimizer reported non-success for all inits; using best objective (%s)", best_msg)
+        logger.warning(
+            "min_variance: optimizer reported non-success for all inits; using best objective (%s)",
+            best_msg,
+        )
     return best_x
 
 
@@ -126,28 +138,31 @@ def max_sharpe_weights(
     rf = float(DEFAULT_RISK_FREE_ANNUAL_IN if risk_free_annual is None else risk_free_annual)
     mu_d = np.asarray(mu_d, dtype=float)
     mu_mean = np.mean(mu_d)
-    alpha = 0.6  
+    alpha = 0.6
     mu_d = alpha * mu_d + (1 - alpha) * mu_mean
     cov_d = np.asarray(cov_d, dtype=float)
     n = len(mu_d)
 
     def neg_sharpe(w: np.ndarray) -> float:
         mu_ann, sig_ann = portfolio_mu_sigma_from_daily(w, mu_d, cov_d)
-
         if sig_ann < 1e-14:
             return 1e12
-
         sharpe = (mu_ann - rf) / sig_ann
-
         penalty_lambda = 0.15
         penalty = penalty_lambda * sig_ann
-
         return -float(sharpe - penalty)
 
     w0 = np.ones(n) / n if x0 is None else np.asarray(x0, dtype=float)
     cons = ({"type": "eq", "fun": lambda w: float(np.sum(w) - 1.0)},)
     bounds = tuple((0.0, 1.0) for _ in range(n))
-    res = minimize(neg_sharpe, w0, method="SLSQP", bounds=bounds, constraints=cons, options={"maxiter": 500})
+    res = minimize(
+        neg_sharpe,
+        w0,
+        method="SLSQP",
+        bounds=bounds,
+        constraints=cons,
+        options={"maxiter": 500},
+    )
     if not res.success:
         logger.error("max_sharpe: %s", res.message)
         raise OptimizationFailedError(f"Max Sharpe failed: {res.message}")
