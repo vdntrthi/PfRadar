@@ -115,6 +115,16 @@ def fetch_adj_close_history(
         f"yfinance download failed for {symbol}: {last_error or 'No data returned'}"
     )
 
+def fetch_market_returns(start, end):
+    
+    df = yf.download("^NSEI", start=start, end=end, progress=False)
+
+    if df is None or df.empty:
+        raise ValueError("Failed to fetch market data")
+
+    returns = df["Close"].pct_change().dropna()
+    return returns
+
 
 def fetch_aligned_prices(
     tickers: list[str],

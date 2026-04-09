@@ -18,6 +18,7 @@ class RandomPortfolioCloud:
 
     returns: np.ndarray  # shape (n_samples,)
     volatilities: np.ndarray
+    weights: np.ndarray
 
 
 def random_portfolio_cloud(
@@ -45,7 +46,11 @@ def random_portfolio_cloud(
         mr, sv = portfolio_mu_sigma_from_daily(wi, mu_d, cov_d)
         rets[i] = mr
         vols[i] = sv
-    return RandomPortfolioCloud(returns=rets, volatilities=vols)
+    return RandomPortfolioCloud(
+        returns=rets,
+        volatilities=vols,
+        weights=w,
+    )
 
 
 def summarize_cloud(

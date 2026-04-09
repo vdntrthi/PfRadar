@@ -35,6 +35,7 @@ def _cmd_demo(args: argparse.Namespace) -> int:
         report = build_full_report(
             tickers=tickers,
             target_weights=None,
+            risk_score=args.risk,
             start=args.start,
             end=args.end,
             risk_free_annual=args.risk_free,
@@ -64,6 +65,7 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_demo = sub.add_parser("demo", help="Fetch data, optimize, print JSON report")
+    
     p_demo.add_argument(
         "tickers",
         nargs="+",
@@ -85,6 +87,7 @@ def main() -> int:
         default="",
         help="If set, PNG path to save efficient frontier figure (e.g. frontier.png)",
     )
+    p_demo.add_argument("--risk", type=float, default=None, help="Risk score (0 to 1)")
     p_demo.set_defaults(func=_cmd_demo)
 
     args = parser.parse_args()
