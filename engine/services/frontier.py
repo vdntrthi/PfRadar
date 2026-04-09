@@ -64,4 +64,29 @@ def summarize_cloud(
     }
 
 
-__all__ = ["RandomPortfolioCloud", "random_portfolio_cloud", "summarize_cloud"]
+def get_target_risk_portfolio(returns: np.ndarray, cov_matrix: np.ndarray, risk_level: float, risk_free_rate: float = 0.07) -> np.ndarray:
+    """
+    Interpolate along the efficient frontier based on risk_level [0, 1].
+    0 -> min variance portfolio
+    1 -> max Sharpe portfolio
+    """
+    from services.optimizer import min_variance_weights, max_sharpe_weights
+
+    # Clip risk level to [0, 1]
+    risk_level = float(np.clip(risk_level, 0.0, 1.0))
+
+    # Compute bounds of the frontier
+    min_var_weights = min_variance_weights(cov_matrix)
+    max_sharpe_w = max_sharpe_weights(returns, cov_matrix, risk_free_rate)
+
+    # Convex combination
+    weights = (1.0 - risk_level) * min_var_weights + risk_level * max_sharpe_w
+
+    # Normalize weights to ensure they sum to exactly 1
+    weights = np.clip(weights, 0.0, 1.0)
+    weights = weights / weights.sum()
+
+    return weights
+
+
+__all__ = ["RandomPortfolioCloud", "random_portfolio_cloud", "summarize_cloud", "get_target_risk_portfolio"]

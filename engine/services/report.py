@@ -16,7 +16,6 @@ from models.schemas import FullPortfolioReport
 from services.frontier import random_portfolio_cloud, summarize_cloud
 from services.market_data import fetch_aligned_prices, fetch_market_returns, normalize_indian_tickers
 from services.optimizer import (
-    efficient_portfolio_for_target_vol,
     max_sharpe_weights,
     min_variance_weights,
     portfolio_mu_sigma_from_daily,
@@ -36,16 +35,7 @@ def _weights_dict(symbols: list[str], w: np.ndarray) -> dict[str, float]:
 def _equal_weights(n: int) -> np.ndarray:
     return np.ones(n, dtype=float) / n
 
-def target_vol_from_risk(risk_score, sig_mv, sig_ms):
-    return sig_mv + risk_score * (sig_ms - sig_mv)
-
-def get_portfolio_for_risk(cloud, risk_score, sig_mv, sig_ms):
-    target_vol = target_vol_from_risk(risk_score, sig_mv, sig_ms)
-
-    idx = np.argmin(np.abs(cloud.volatilities - target_vol))
-
-    return cloud.weights[idx]
-
+from services.frontier import random_portfolio_cloud, summarize_cloud, get_target_risk_portfolio
 
 def build_full_report(
     tickers: list[str],
@@ -115,24 +105,31 @@ def build_full_report(
 
     # ======================================================
 
-    print("\n--- DEBUG: Expected Returns ---")
-    print("Historical (first 5):", mu_hist[:5])
-    print("CAPM (first 5):      ", mu_capm[:5])
-    print("Blended (first 5):   ", mu_d[:5])
-    print("Symbols:", used_syms[:5])
+
 
     n = len(used_syms)
+
+    user_weights_raw = None
+    user_weights_normalized = None
 
     if target_weights is None:
         w_ref = _equal_weights(n)
         ref_label = "equal_weight"
     else:
-        w_ref = np.array([target_weights[s] for s in used_syms], dtype=float)
+        w_raw = np.array([target_weights[s] for s in used_syms], dtype=float)
+        user_weights_raw = _weights_dict(used_syms, w_raw)
+        
+        w_ref = w_raw.copy()
         if not np.isclose(w_ref.sum(), 1.0, atol=1e-6):
-            raise ValueError("target_weights must sum to 1")
+            logger.info("Normalizing user weights to sum to 1.0 for metrics comparison.")
+            if w_ref.sum() > 1e-12:
+                w_ref = w_ref / w_ref.sum()
+            elif len(w_ref) > 0 and (w_ref < -1e-9).any():
+                 raise ValueError("target_weights must be non-negative (long-only)")
         if (w_ref < -1e-9).any():
             raise ValueError("target_weights must be non-negative (long-only)")
-        w_ref = w_ref / w_ref.sum()
+        
+        user_weights_normalized = _weights_dict(used_syms, w_ref)
         ref_label = "user"
 
     mu_ann_ref, sig_ann_ref = portfolio_mu_sigma_from_daily(w_ref, mu_d, cov_d)
@@ -156,37 +153,17 @@ def build_full_report(
 
     # ================= USER RISK PORTFOLIO =================
 
-    w_user = None
-    mu_user = None
-    sig_user = None
+    w_target_risk = None
+    mu_target_risk = None
+    sig_target_risk = None
 
     mu_mv, sig_mv = portfolio_mu_sigma_from_daily(w_mv, mu_d, cov_d)
     mu_ms, sig_ms = portfolio_mu_sigma_from_daily(w_ms, mu_d, cov_d)    
 
     if risk_score is not None:
-        # clamp risk
         risk_score = float(np.clip(risk_score, 0.0, 1.0))
-
-        # map risk → target volatility
-        target_vol = sig_mv + risk_score * (sig_ms - sig_mv)
-
-        if risk_score is not None:
-             risk_score = float(np.clip(risk_score, 0.0, 1.0))
-
-             target_vol = sig_mv + risk_score * (sig_ms - sig_mv)
-
-        w_user = efficient_portfolio_for_target_vol(
-             mu_d,
-            cov_d,
-            target_vol
-         )
-
-        mu_user, sig_user = portfolio_mu_sigma_from_daily(w_user, mu_d, cov_d)
-
-        # compute stats
-        mu_user, sig_user = portfolio_mu_sigma_from_daily(w_user, mu_d, cov_d)
-
-    
+        w_target_risk = get_target_risk_portfolio(mu_d, cov_d, risk_score, risk_free_rate=rf)
+        mu_target_risk, sig_target_risk = portfolio_mu_sigma_from_daily(w_target_risk, mu_d, cov_d)
 
     if plot_path:
         plot_efficient_frontier_cloud(
@@ -219,9 +196,11 @@ def build_full_report(
         reference_portfolio=ref_label,
         min_variance_weights=_weights_dict(used_syms, w_mv),
         max_sharpe_weights=_weights_dict(used_syms, w_ms),
-        user_portfolio=_weights_dict(used_syms, w_user) if risk_score is not None else None,
-        user_expected_return=float(mu_user) if risk_score is not None else None,
-        user_volatility=float(sig_user) if risk_score is not None else None,
+        user_weights_raw=user_weights_raw,
+        user_weights_normalized=user_weights_normalized,
+        target_risk_portfolio=_weights_dict(used_syms, w_target_risk) if risk_score is not None else None,
+        target_risk_expected_return=float(mu_target_risk) if risk_score is not None else None,
+        target_risk_volatility=float(sig_target_risk) if risk_score is not None else None,
         user_risk_score=risk_score,
         risk_free_annual=rf,
         trading_days_per_year=TRADING_DAYS_PER_YEAR,

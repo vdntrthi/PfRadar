@@ -28,44 +28,6 @@ def _annualized_portfolio_mean(mu_d: np.ndarray, w: np.ndarray) -> float:
     td = float(TRADING_DAYS_PER_YEAR)
     return float((1.0 + mu_p) ** td - 1.0)
 
-def efficient_portfolio_for_target_vol(
-    mu_d: np.ndarray,
-    cov_d: np.ndarray,
-    target_vol: float,
-):
-    n = len(mu_d)
-
-    def neg_return(w):
-        mu_ann, _ = portfolio_mu_sigma_from_daily(w, mu_d, cov_d)
-        return -mu_ann
-
-    def vol_constraint(w):
-        _, sig_ann = portfolio_mu_sigma_from_daily(w, mu_d, cov_d)
-        return sig_ann - target_vol
-
-    cons = (
-        {"type": "eq", "fun": lambda w: np.sum(w) - 1},
-        {"type": "eq", "fun": vol_constraint},
-    )
-
-    bounds = [(0.0, 1.0)] * n
-    w0 = np.ones(n) / n
-
-    res = minimize(
-        neg_return,
-        w0,
-        method="SLSQP",
-        bounds=bounds,
-        constraints=cons,
-        options={"maxiter": 500},
-    )
-
-    if not res.success:
-        raise OptimizationFailedError(f"Target vol optimization failed: {res.message}")
-
-    return res.x / res.x.sum()
-
-
 def _annualized_portfolio_std(cov_d: np.ndarray, w: np.ndarray) -> float:
     var_d = float(w @ cov_d @ w)
     if var_d < 0 and var_d > -1e-14:

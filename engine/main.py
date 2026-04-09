@@ -31,10 +31,18 @@ def _cmd_demo(args: argparse.Namespace) -> int:
     if len(tickers) < 2:
         log.error("Provide at least two tickers for a meaningful portfolio demo.")
         return 2
+
+    target_weights = None
+    if args.weights:
+        if len(args.weights) != len(tickers):
+            log.error("Number of weights provided (%d) does not match number of tickers (%d).", len(args.weights), len(tickers))
+            return 2
+        target_weights = dict(zip(tickers, args.weights))
+
     try:
         report = build_full_report(
             tickers=tickers,
-            target_weights=None,
+            target_weights=target_weights,
             risk_score=args.risk,
             start=args.start,
             end=args.end,
@@ -47,7 +55,54 @@ def _cmd_demo(args: argparse.Namespace) -> int:
     except Exception as e:
         log.exception("Demo failed: %s", e)
         return 1
-    print(json.dumps(report, indent=2))
+        
+    if target_weights:
+        print("\nUser Portfolio")
+        print(f"Return: {report['expected_return']:.2%}")
+        print(f"Risk: {report['volatility']:.2%}\n")
+        
+        opt_return = report['meta']['max_sharpe_annual_return']
+        opt_risk = report['meta']['max_sharpe_annual_volatility']
+        opt_weights = report['optimal_weights']
+        
+        if args.risk is not None:
+            opt_return = report['target_risk_expected_return']
+            opt_risk = report['target_risk_volatility']
+            opt_weights = report['target_risk_portfolio']
+            
+        print("Optimal Portfolio")
+        print("Weights:")
+        for t, w in opt_weights.items():
+            print(f"  {t}: {w:.2%}")
+        print(f"\nReturn: {opt_return:.2%}")
+        print(f"Risk: {opt_risk:.2%}\n")
+        
+        print("Insight:")
+        user_ret = report['expected_return']
+        user_risk = report['volatility']
+        
+        ret_diff = opt_return - user_ret
+        risk_diff = opt_risk - user_risk
+        eps = 1e-6
+        
+        if ret_diff > eps and risk_diff < -eps:
+            print("Your portfolio is suboptimal — higher return at lower risk is possible.")
+
+        elif ret_diff > eps and risk_diff > eps:
+            print("Tradeoff — higher return comes with higher risk.")
+
+        elif abs(ret_diff) <= eps and risk_diff < -eps:
+            print("More efficient allocation — same return, lower risk.")
+
+        elif ret_diff < -eps and risk_diff < -eps:
+            print("Lower return but more stable — defensive allocation.")
+
+        elif abs(ret_diff) <= eps and abs(risk_diff) <= eps:
+            print("Your portfolio is effectively optimal.")
+
+        else:
+            print("Custom allocation — reflects your specific preferences.")
+        
     if args.plot:
         log.info("Frontier figure written to %s", Path(args.plot).resolve())
     return 0
@@ -70,6 +125,12 @@ def main() -> int:
         "tickers",
         nargs="+",
         help="e.g. RELIANCE.NS TCS.NS INFY.NS",
+    )
+    p_demo.add_argument(
+        "--weights",
+        nargs="+",
+        type=float,
+        help="Custom weights corresponding to each ticker (e.g., 0.5 0.5)",
     )
     p_demo.add_argument("--start", default=None, help="YYYY-MM-DD")
     p_demo.add_argument("--end", default=None, help="YYYY-MM-DD")

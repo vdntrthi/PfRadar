@@ -29,9 +29,13 @@ class FullPortfolioReport(BaseModel):
     annualized_mean_return_by_symbol: dict[str, float] = Field(default_factory=dict)
     frontier_random_stats: dict[str, float] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
-    user_portfolio: dict[str, float] | None = None
+    user_weights_raw: dict[str, float] | None = None
+    user_weights_normalized: dict[str, float] | None = None
     user_expected_return: float | None = None
     user_volatility: float | None = None
+    target_risk_portfolio: dict[str, float] | None = None
+    target_risk_expected_return: float | None = None
+    target_risk_volatility: float | None = None
     user_risk_score: float | None = None
 
     def to_json_dict(self) -> dict[str, Any]:
