@@ -37,6 +37,10 @@ class FullPortfolioReport(BaseModel):
     target_risk_expected_return: float | None = None
     target_risk_volatility: float | None = None
     user_risk_score: float | None = None
+    historical_chart_data: dict[str, Any] | None = None
+    user_portfolio_cagr: float | None = None
+    optimal_portfolio_cagr: float | None = None
+    efficient_frontier_data: dict[str, Any] | None = None
 
     def to_json_dict(self) -> dict[str, Any]:
         """Ensure JSON-safe (no NaN)."""

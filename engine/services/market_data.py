@@ -116,13 +116,31 @@ def fetch_adj_close_history(
     )
 
 def fetch_market_returns(start, end):
+    from datetime import date, timedelta
     
-    df = yf.download("^NSEI", start=start, end=end, progress=False)
+    d0 = _parse_date(start) if start is not None else None
+    d1 = _parse_date(end) if end is not None else None
+    if d0 is None:
+        d0 = (d1 or date.today()) - timedelta(days=365 * 5)
+        
+    df = yf.download("^NSEI", start=d0, end=d1, progress=False, auto_adjust=True)
 
     if df is None or df.empty:
         raise ValueError("Failed to fetch market data")
 
-    returns = df["Close"].pct_change().dropna()
+    # If yfinance returns a MultiIndex columns
+    if isinstance(df.columns, pd.MultiIndex):
+        if "Close" in df.columns.levels[0]:
+            close_series = df["Close"].iloc[:, 0]
+        else:
+            close_series = df.iloc[:, 0]
+    else:
+        close_series = df["Close"]
+
+    if isinstance(close_series.index, pd.DatetimeIndex):
+        close_series.index = close_series.index.tz_localize(None).normalize()
+
+    returns = close_series.pct_change().dropna()
     return returns
 
 

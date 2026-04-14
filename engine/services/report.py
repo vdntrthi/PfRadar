@@ -186,6 +186,76 @@ def build_full_report(
         md = float(rets[sym].mean())
         ann_mean_map[sym] = annualized_return_from_daily_mean(md)
 
+    import pandas as pd
+    from utils.returns import portfolio_daily_returns
+
+    last_date = rets.index[-1]
+    start_1y = last_date - pd.DateOffset(years=1)
+    
+    mask_1y = rets.index >= start_1y
+    rets_1y = rets.loc[mask_1y]
+    
+    user_returns_1y = portfolio_daily_returns(rets_1y, w_ref, symbols_order=list(used_syms))
+    
+    opt_w = w_target_risk if risk_score is not None else w_ms
+    opt_returns_1y = portfolio_daily_returns(rets_1y, opt_w, symbols_order=list(used_syms))
+
+    market_returns_1y = market_returns.loc[market_returns.index.isin(rets_1y.index)]
+    market_returns_aligned = market_returns_1y.reindex(rets_1y.index).fillna(0.0)
+
+    cum_user = (1 + user_returns_1y).cumprod() - 1
+    cum_opt = (1 + opt_returns_1y).cumprod() - 1
+    cum_bench = (1 + market_returns_aligned).cumprod() - 1
+
+    historical_chart_data = {
+        "dates": [d.strftime("%Y-%m-%d") for d in rets_1y.index],
+        "user_portfolio": [float(x) for x in cum_user],
+        "optimal_portfolio": [float(x) for x in cum_opt],
+        "benchmark_nifty50": [float(x) for x in cum_bench],
+        "assets": {sym: [float(x) for x in ((1 + rets_1y[sym]).cumprod() - 1)] for sym in used_syms}
+    }
+
+    # ================= PORTFOLIO-LEVEL CAGR =================
+    # Use the full price history to compute portfolio-level CAGR
+    full_rets = rets[list(used_syms)]
+    user_daily_full = portfolio_daily_returns(full_rets, w_ref, symbols_order=list(used_syms))
+    opt_daily_full = portfolio_daily_returns(full_rets, opt_w, symbols_order=list(used_syms))
+
+    # Build cumulative growth factor series (like a price series starting at 1.0)
+    user_growth = (1 + user_daily_full).cumprod()
+    opt_growth = (1 + opt_daily_full).cumprod()
+
+    def _portfolio_cagr(growth_series: pd.Series) -> float | None:
+        """CAGR from a cumulative growth-factor series (starts ~1.0)."""
+        s = growth_series.dropna()
+        if len(s) < 2:
+            return None
+        p0, p1 = float(s.iloc[0]), float(s.iloc[-1])
+        if p0 <= 0 or p1 <= 0:
+            return None
+        days = (s.index[-1] - s.index[0]).days
+        years = days / 365.25
+        if years <= 0:
+            return None
+        return float((p1 / p0) ** (1.0 / years) - 1.0)
+
+    user_cagr = _portfolio_cagr(user_growth)
+    opt_cagr = _portfolio_cagr(opt_growth)
+
+    # =============== EFFICIENT FRONTIER DATA ================
+    # Package the Monte-Carlo cloud + key portfolio points for the frontend chart
+    efficient_frontier_data = {
+        "cloud_volatilities": [float(v) for v in cloud.volatilities],
+        "cloud_returns": [float(r) for r in cloud.returns],
+        "user_portfolio": {"volatility": float(sig_ann_ref), "return": float(mu_ann_ref)},
+        "optimal_portfolio": {
+            "volatility": float(sig_target_risk) if risk_score is not None else float(sig_ms),
+            "return": float(mu_target_risk) if risk_score is not None else float(mu_ms),
+        },
+        "min_variance": {"volatility": float(sig_mv), "return": float(mu_mv)},
+        "max_sharpe": {"volatility": float(sig_ms), "return": float(mu_ms)},
+    }
+
     report = FullPortfolioReport(
         expected_return=float(mu_ann_ref),
         volatility=float(sig_ann_ref),
@@ -207,6 +277,10 @@ def build_full_report(
         cagr_by_symbol=cagr_map,
         annualized_mean_return_by_symbol=ann_mean_map,
         frontier_random_stats=frontier_stats,
+        historical_chart_data=historical_chart_data,
+        user_portfolio_cagr=user_cagr,
+        optimal_portfolio_cagr=opt_cagr,
+        efficient_frontier_data=efficient_frontier_data,
         meta={
             "price_rows": int(len(prices)),
             "return_rows": int(len(rets)),

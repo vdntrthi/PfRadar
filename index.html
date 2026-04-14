@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PfRadar — Portfolio Optimization Engine</title>
+    <meta name="description" content="Analyze and optimize your Indian stock portfolio with real-time CAGR, efficient frontier, and risk-return analytics.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(22, 28, 45, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-user: #38bdf8;
+            --accent-optimal: #a855f7;
+            --accent-benchmark: #10b981;
+            --accent-minvar: #22c55e;
+            --accent-maxsharpe: #f59e0b;
+            --glow-optimal: rgba(168, 85, 247, 0.2);
+            --glow-user: rgba(56, 189, 248, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image:
+                radial-gradient(ellipse at top left, var(--glow-user), transparent 40%),
+                radial-gradient(ellipse at bottom right, var(--glow-optimal), transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 3rem 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        header {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-title .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-user {
+            background-color: var(--accent-user);
+            box-shadow: 0 0 10px var(--accent-user);
+        }
+
+        .dot-optimal {
+            background-color: var(--accent-optimal);
+            box-shadow: 0 0 10px var(--accent-optimal);
+        }
+
+        .dot-cagr-user {
+            background: linear-gradient(135deg, var(--accent-user), #6366f1);
+            box-shadow: 0 0 10px var(--accent-user);
+        }
+
+        .dot-cagr-opt {
+            background: linear-gradient(135deg, var(--accent-optimal), #ec4899);
+            box-shadow: 0 0 10px var(--accent-optimal);
+        }
+
+        .metric-value {
+            font-size: 2.25rem;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-change {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .metric-sub {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .cagr-positive {
+            color: #10b981;
+        }
+
+        .cagr-negative {
+            color: #ef4444;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            height: 500px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .chart-container h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-container h2 .icon {
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-optimal);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .input-form {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group.risk-group {
+            max-width: 250px;
+            min-width: 150px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-family: 'Inter';
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-field:focus {
+            border-color: rgba(168, 85, 247, 0.5);
+        }
+
+        .risk-slider {
+            width: 100%;
+            padding: 0.5rem 0;
+            accent-color: var(--accent-optimal);
+            cursor: pointer;
+        }
+
+        .analyze-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(to right, var(--accent-user), #6366f1);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .analyze-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(0);
+        }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .frontier-legend {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .frontier-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-secondary);
+        }
+
+        .frontier-legend-item .swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .frontier-legend-item .swatch.circle {
+            border-radius: 50%;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: slideUp 0.5s ease-out both;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.25rem;
+            }
+            .chart-container {
+                height: 400px;
+                padding: 1rem;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>PfRadar</h1>
+            <p class="subtitle">Portfolio Optimization Engine</p>
+        </header>
+
+        <!-- Input Form -->
+        <div class="input-form" id="inputForm">
+            <div class="input-group">
+                <label class="input-label">Tickers (comma separated)</label>
+                <input type="text" id="tickerInput" value="RELIANCE.NS, TCS.NS, INFY.NS" class="input-field">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Weights (comma separated)</label>
+                <input type="text" id="weightInput" value="0.4, 0.3, 0.3" class="input-field">
+            </div>
+            <div class="input-group risk-group">
+                <label class="input-label">Risk Profile: <strong id="riskLabel"
+                        style="color: var(--accent-optimal);">0.5</strong></label>
+                <input type="range" id="riskInput" min="0" max="1" step="0.05" value="0.5"
+                    oninput="document.getElementById('riskLabel').innerText = this.value" class="risk-slider">
+            </div>
+            <button onclick="fetchReport()" class="analyze-btn" id="analyzeBtn">
+                Analyze Live
+            </button>
+        </div>
+
+        <!-- Metrics Grid: Return / Risk / CAGR -->
+        <div class="metrics-grid" id="metricsGrid">
+            <div class="metric-card">
+                <div class="metric-title">
+                    <div class="dot dot-user"></div>User Portfolio (Ann. Return)
+                </div>
+                <div class="metric-value" id="userReturn">--</div>
+                <div class="metric-change" id="userRisk">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">
+                    <div class="dot dot-optimal"></div>Optimal Portfolio (Ann. Return)
+                </div>
+                <div class="metric-value" id="optReturn">--</div>
+                <div class="metric-change" id="optRisk">--</div>
+                <div class="metric-sub" id="optWeights">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">
+                    <div class="dot dot-cagr-user"></div>Your Portfolio CAGR
+                </div>
+                <div class="metric-value" id="userCagr">--</div>
+                <div class="metric-sub" id="userCagrSub">Compound annual growth over full history</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">
+                    <div class="dot dot-cagr-opt"></div>Optimal Portfolio CAGR
+                </div>
+                <div class="metric-value" id="optCagr">--</div>
+                <div class="metric-sub" id="optCagrSub">Compound annual growth over full history</div>
+            </div>
+        </div>
+
+        <!-- Efficient Frontier Chart -->
+        <div class="chart-container" style="height: 550px;">
+            <h2><span class="icon">📊</span> Efficient Frontier</h2>
+            <div class="frontier-legend" id="frontierLegend">
+                <div class="frontier-legend-item">
+                    <div class="swatch" style="background: rgba(148, 163, 184, 0.35);"></div>Random Portfolios
+                </div>
+                <div class="frontier-legend-item">
+                    <div class="swatch circle" style="background: var(--accent-user);"></div>Your Portfolio
+                </div>
+                <div class="frontier-legend-item">
+                    <div class="swatch circle" style="background: var(--accent-optimal);"></div>Optimized Portfolio
+                </div>
+                <div class="frontier-legend-item">
+                    <div class="swatch circle" style="background: var(--accent-minvar);"></div>Min Variance
+                </div>
+                <div class="frontier-legend-item">
+                    <div class="swatch circle" style="background: var(--accent-maxsharpe);"></div>Max Sharpe
+                </div>
+            </div>
+            <div class="loading" id="loaderFrontier" style="display: none;">
+                <div class="spinner"></div>
+                <span>Computing efficient frontier...</span>
+            </div>
+            <canvas id="frontierChart" style="display: none;"></canvas>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="chart-container">
+            <h2><span class="icon">📈</span> Portfolio Performance (1Y)</h2>
+            <div class="loading" id="loader" style="display: none;">
+                <div class="spinner"></div>
+                <span>Loading live insights...</span>
+            </div>
+            <canvas id="portfolioChart" style="display: none;"></canvas>
+        </div>
+
+        <!-- Asset Breakdown Chart -->
+        <div class="chart-container">
+            <h2><span class="icon">🏛️</span> Individual Asset Performance (1Y)</h2>
+            <div class="loading" id="loaderAsset" style="display: none;">
+                <div class="spinner"></div>
+                <span>Loading asset insights...</span>
+            </div>
+            <canvas id="assetChart" style="display: none;"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const userReturnEl = document.getElementById('userReturn');
+        const userRiskEl = document.getElementById('userRisk');
+        const optReturnEl = document.getElementById('optReturn');
+        const optRiskEl = document.getElementById('optRisk');
+        const optWeightsEl = document.getElementById('optWeights');
+        const userCagrEl = document.getElementById('userCagr');
+        const optCagrEl = document.getElementById('optCagr');
+        const userCagrSubEl = document.getElementById('userCagrSub');
+        const optCagrSubEl = document.getElementById('optCagrSub');
+        const loader = document.getElementById('loader');
+        const loaderAsset = document.getElementById('loaderAsset');
+        const loaderFrontier = document.getElementById('loaderFrontier');
+        const canvas = document.getElementById('portfolioChart');
+        const assetCanvas = document.getElementById('assetChart');
+        const frontierCanvas = document.getElementById('frontierChart');
+        let currentChart = null;
+        let currentAssetChart = null;
+        let currentFrontierChart = null;
+
+        function formatCagr(value) {
+            if (value === null || value === undefined) return { text: '--', cls: '' };
+            const pct = (value * 100).toFixed(2);
+            const cls = value >= 0 ? 'cagr-positive' : 'cagr-negative';
+            const sign = value >= 0 ? '+' : '';
+            return { text: `${sign}${pct}%`, cls };
+        }
+
+        function fetchReport() {
+            const tickers = document.getElementById('tickerInput').value;
+            const weights = document.getElementById('weightInput').value;
+            const risk = document.getElementById('riskInput').value;
+
+            loader.style.display = 'flex';
+            loaderAsset.style.display = 'flex';
+            loaderFrontier.style.display = 'flex';
+            canvas.style.display = 'none';
+            assetCanvas.style.display = 'none';
+            frontierCanvas.style.display = 'none';
+
+            // Reset metrics
+            userReturnEl.innerText = '...';
+            optReturnEl.innerText = '...';
+            userCagrEl.innerText = '...';
+            optCagrEl.innerText = '...';
+
+            fetch(`/api/report?tickers=${encodeURIComponent(tickers)}&weights=${encodeURIComponent(weights)}&risk=${encodeURIComponent(risk)}`)
+                .then(response => {
+                    if (!response.ok) return response.json().then(err => { throw new Error(err.detail) });
+                    return response.json();
+                })
+                .then(data => {
+                    // Return / Risk cards
+                    userReturnEl.innerText = (data.expected_return * 100).toFixed(2) + '%';
+                    userRiskEl.innerText = 'Risk: ' + (data.volatility * 100).toFixed(2) + '%';
+
+                    const optReturn = data.target_risk_expected_return !== null ? data.target_risk_expected_return : data.meta.max_sharpe_annual_return;
+                    const optRiskVal = data.target_risk_volatility !== null ? data.target_risk_volatility : data.meta.max_sharpe_annual_volatility;
+                    const optWeights = data.target_risk_portfolio !== null ? data.target_risk_portfolio : data.optimal_weights;
+
+                    optReturnEl.innerText = (optReturn * 100).toFixed(2) + '%';
+                    optRiskEl.innerText = 'Risk: ' + (optRiskVal * 100).toFixed(2) + '%';
+
+                    let weightsStr = "";
+                    for (const [sym, w] of Object.entries(optWeights)) {
+                        weightsStr += `<div><strong>${sym}:</strong> ${(w * 100).toFixed(1)}%</div>`;
+                    }
+                    optWeightsEl.innerHTML = weightsStr;
+
+                    // CAGR cards
+                    const userCagrData = formatCagr(data.user_portfolio_cagr);
+                    userCagrEl.innerText = userCagrData.text;
+                    userCagrEl.className = `metric-value ${userCagrData.cls}`;
+
+                    const optCagrData = formatCagr(data.optimal_portfolio_cagr);
+                    optCagrEl.innerText = optCagrData.text;
+                    optCagrEl.className = `metric-value ${optCagrData.cls}`;
+
+                    // Efficient frontier
+                    drawFrontierChart(data.efficient_frontier_data);
+
+                    // Performance charts
+                    drawChart(data.historical_chart_data);
+                    drawAssetChart(data.historical_chart_data);
+                })
+                .catch(err => {
+                    loader.innerHTML = `<span style="color: #ef4444; width:100%; text-align:center;">Error: ${err.message}</span>`;
+                    loaderAsset.style.display = 'none';
+                    loaderFrontier.style.display = 'none';
+                });
+        }
+
+        function drawFrontierChart(frontierData) {
+            if (!frontierData || !frontierData.cloud_volatilities) {
+                loaderFrontier.style.display = 'flex';
+                loaderFrontier.innerHTML = `<span style="color: #ef4444">No frontier data available</span>`;
+                return;
+            }
+
+            loaderFrontier.style.display = 'none';
+            frontierCanvas.style.display = 'block';
+
+            if (currentFrontierChart) {
+                currentFrontierChart.destroy();
+            }
+
+            const ctx = frontierCanvas.getContext('2d');
+
+            // Build scatter data: random cloud
+            const cloudData = frontierData.cloud_volatilities.map((v, i) => ({
+                x: v * 100,
+                y: frontierData.cloud_returns[i] * 100,
+            }));
+
+            // Key portfolio points
+            const userPoint = [{
+                x: frontierData.user_portfolio.volatility * 100,
+                y: frontierData.user_portfolio.return * 100,
+            }];
+            const optPoint = [{
+                x: frontierData.optimal_portfolio.volatility * 100,
+                y: frontierData.optimal_portfolio.return * 100,
+            }];
+            const minVarPoint = [{
+                x: frontierData.min_variance.volatility * 100,
+                y: frontierData.min_variance.return * 100,
+            }];
+            const maxSharpePoint = [{
+                x: frontierData.max_sharpe.volatility * 100,
+                y: frontierData.max_sharpe.return * 100,
+            }];
+
+            currentFrontierChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Random Portfolios',
+                            data: cloudData,
+                            backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                            borderColor: 'rgba(148, 163, 184, 0.35)',
+                            pointRadius: 2.5,
+                            pointHoverRadius: 5,
+                            order: 5,
+                        },
+                        {
+                            label: 'Your Portfolio',
+                            data: userPoint,
+                            backgroundColor: '#38bdf8',
+                            borderColor: '#fff',
+                            borderWidth: 2,
+                            pointRadius: 10,
+                            pointHoverRadius: 14,
+                            pointStyle: 'circle',
+                            order: 1,
+                        },
+                        {
+                            label: 'Optimized Portfolio',
+                            data: optPoint,
+                            backgroundColor: '#a855f7',
+                            borderColor: '#fff',
+                            borderWidth: 2,
+                            pointRadius: 10,
+                            pointHoverRadius: 14,
+                            pointStyle: 'rectRounded',
+                            order: 1,
+                        },
+                        {
+                            label: 'Min Variance',
+                            data: minVarPoint,
+                            backgroundColor: '#22c55e',
+                            borderColor: '#fff',
+                            borderWidth: 2,
+                            pointRadius: 8,
+                            pointHoverRadius: 12,
+                            pointStyle: 'star',
+                            order: 2,
+                        },
+                        {
+                            label: 'Max Sharpe',
+                            data: maxSharpePoint,
+                            backgroundColor: '#f59e0b',
+                            borderColor: '#fff',
+                            borderWidth: 2,
+                            pointRadius: 8,
+                            pointHoverRadius: 12,
+                            pointStyle: 'triangle',
+                            order: 2,
+                        },
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: true,
+                    },
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#94a3b8',
+                            bodyColor: '#f8fafc',
+                            borderColor: 'rgba(255,255,255,0.12)',
+                            borderWidth: 1,
+                            padding: 14,
+                            cornerRadius: 10,
+                            titleFont: { family: 'Inter', size: 13 },
+                            bodyFont: { family: 'Inter', size: 14, weight: 600 },
+                            callbacks: {
+                                title: (items) => items[0]?.dataset.label || '',
+                                label: (ctx) => `Return: ${ctx.parsed.y.toFixed(2)}%  |  Risk: ${ctx.parsed.x.toFixed(2)}%`,
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Annualized Volatility (%)',
+                                color: '#94a3b8',
+                                font: { family: 'Inter', size: 13, weight: 500 },
+                            },
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: {
+                                color: '#64748b',
+                                font: { family: 'Inter' },
+                                callback: (val) => val.toFixed(1) + '%',
+                            },
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Annualized Return (%)',
+                                color: '#94a3b8',
+                                font: { family: 'Inter', size: 13, weight: 500 },
+                            },
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: {
+                                color: '#64748b',
+                                font: { family: 'Inter' },
+                                callback: (val) => val.toFixed(1) + '%',
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawChart(chartData) {
+            if (!chartData || !chartData.dates) {
+                loader.style.display = 'flex';
+                loader.innerHTML = `<span style="color: #ef4444">No historical chart data found</span>`;
+                return;
+            }
+
+            loader.style.display = 'none';
+            canvas.style.display = 'block';
+
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            const toPercent = arr => arr.map(v => v * 100);
+            const ctx = canvas.getContext('2d');
+
+            const optGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            optGradient.addColorStop(0, 'rgba(168, 85, 247, 0.4)');
+            optGradient.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+
+            const userGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            userGradient.addColorStop(0, 'rgba(56, 189, 248, 0.3)');
+            userGradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.dates,
+                    datasets: [
+                        {
+                            label: 'Optimal Portfolio',
+                            data: toPercent(chartData.optimal_portfolio),
+                            borderColor: '#a855f7',
+                            backgroundColor: optGradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                        },
+                        {
+                            label: 'Your Portfolio',
+                            data: toPercent(chartData.user_portfolio),
+                            borderColor: '#38bdf8',
+                            backgroundColor: userGradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                        },
+                        {
+                            label: 'Nifty 50 Benchmark',
+                            data: toPercent(chartData.benchmark_nifty50),
+                            borderColor: '#10b981',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#f8fafc',
+                                font: { family: 'Inter', size: 13, weight: 500 },
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#94a3b8',
+                            bodyColor: '#f8fafc',
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: { family: 'Inter', size: 13 },
+                            bodyFont: { family: 'Inter', size: 14, weight: 600 },
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: { color: '#64748b', maxTicksLimit: 8, font: { family: 'Inter' } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: {
+                                color: '#64748b',
+                                font: { family: 'Inter' },
+                                callback: (val) => val + '%'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawAssetChart(chartData) {
+            if (!chartData || !chartData.dates || !chartData.assets) {
+                loaderAsset.style.display = 'flex';
+                loaderAsset.innerHTML = `<span style="color: #ef4444">No asset chart data found</span>`;
+                return;
+            }
+
+            loaderAsset.style.display = 'none';
+            assetCanvas.style.display = 'block';
+
+            if (currentAssetChart) {
+                currentAssetChart.destroy();
+            }
+
+            const toPercent = arr => arr.map(v => v * 100);
+            const ctx = assetCanvas.getContext('2d');
+
+            const colors = ['#f43f5e', '#3b82f6', '#eab308', '#22c55e', '#a855f7', '#fb923c'];
+            const datasets = [];
+            let colorIdx = 0;
+
+            for (const [sym, dataArr] of Object.entries(chartData.assets)) {
+                datasets.push({
+                    label: sym,
+                    data: toPercent(dataArr),
+                    borderColor: colors[colorIdx % colors.length],
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                });
+                colorIdx++;
+            }
+
+            currentAssetChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.dates,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#f8fafc',
+                                font: { family: 'Inter', size: 13, weight: 500 },
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#94a3b8',
+                            bodyColor: '#f8fafc',
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: { family: 'Inter', size: 13 },
+                            bodyFont: { family: 'Inter', size: 14, weight: 600 },
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: { color: '#64748b', maxTicksLimit: 8, font: { family: 'Inter' } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: {
+                                color: '#64748b',
+                                font: { family: 'Inter' },
+                                callback: (val) => val + '%'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
