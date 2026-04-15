@@ -258,6 +258,8 @@
             align-items: flex-end;
             flex-wrap: wrap;
             box-shadow: var(--shadow-card);
+            position: relative;
+            z-index: 10;
         }
 
         .input-group {
@@ -494,6 +496,50 @@
         .period-btn.active:hover {
             opacity: 0.92;
         }
+
+        /* Custom Autocomplete */
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            transition: background-color 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background-color: rgba(46, 125, 91, 0.08);
+            color: var(--accent-user);
+        }
+
+        .autocomplete-item strong {
+            color: var(--accent-user);
+        }
+
+        .input-field.has-suggestions {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
     </style>
 </head>
 
@@ -508,8 +554,10 @@
         <div class="input-form" id="inputForm">
             <div class="input-group" style="flex: 2;">
                 <label class="input-label">Select Ticker</label>
-                <input list="tickersList" id="tickerSelect" placeholder="Search or type ticker (e.g., RELIANCE.NS)" class="input-field">
-                <datalist id="tickersList"></datalist>
+                <div class="autocomplete-container">
+                    <input id="tickerSelect" placeholder="Search or type ticker (e.g., RELIANCE.NS)" class="input-field" autocomplete="off">
+                    <div id="autocompleteList" class="autocomplete-items"></div>
+                </div>
             </div>
             <button type="button" onclick="addTicker()" class="analyze-btn">
                 Add Ticker
@@ -517,7 +565,7 @@
         </div>
 
         <!-- Tickers Table and Controls -->
-        <div id="portfolioControls" style="display: none; background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-card);">
+        <div id="portfolioControls" style="display: none; background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-card); position: relative; z-index: 1;">
             <div style="overflow-x: auto; margin-bottom: 1.5rem;">
                 <table class="tickers-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                     <thead>
@@ -646,13 +694,397 @@
 
     <script>
         const INDIAN_TICKERS = [
-            "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "BHARTIARTL.NS", "INFY.NS", "ITC.NS", "HINDUNILVR.NS",
-            "L&T.NS", "SBIN.NS", "BAJFINANCE.NS", "KOTAKBANK.NS", "HCLTECH.NS", "ASIANPAINT.NS", "TATAMOTORS.NS", "SUNPHARMA.NS",
-            "TITAN.NS", "MARUTI.NS", "TATASTEEL.NS", "ULTRACEMCO.NS", "BAJAJFINSV.NS", "M&M.NS", "NTPC.NS", "AXISBANK.NS",
-            "WIPRO.NS", "NESTLEIND.NS", "POWERGRID.NS", "ONGC.NS", "TECHM.NS", "HINDALCO.NS", "GRASIM.NS", "JSWSTEEL.NS",
-            "ADANIENT.NS", "ADANIPORTS.NS", "CIPLA.NS", "HEROMOTOCO.NS", "BRITANNIA.NS", "APOLLOHOSP.NS", "EICHERMOT.NS",
-            "DIVISLAB.NS", "SBILIFE.NS", "BAJAJ-AUTO.NS", "DRREDDY.NS", "LTIM.NS", "HDFCLIFE.NS", "COALINDIA.NS", "TATACONSUM.NS",
-            "BPCL.NS", "INDUSINDBK.NS", "ZOMATO.NS", "JIOFIN.NS", "TRENT.NS", "HAL.NS", "IREDA.NS"
+            'AADHARHFC.NS',
+            'AARTIIND.NS',
+            'ABB.NS',
+            'ABSLAMC.NS',
+            'ACC.NS',
+            'ACI.NS',
+            'ACMESOLAR.NS',
+            'ACUTAAS.NS',
+            'ADANIENT.NS',
+            'ADANIGREEN.NS',
+            'ADANIPORTS.NS',
+            'ADANIPOWER.NS',
+            'AEROFLEX.NS',
+            'AETHER.NS',
+            'AGIIL.NS',
+            'AIIL.NS',
+            'AKUMS.NS',
+            'ALIVUS.NS',
+            'ALKEM.NS',
+            'ALKYLAMINE.NS',
+            'AMBUJACEM.NS',
+            'ANDHRSUGAR.NS',
+            'ANGELONE.NS',
+            'ANUP.NS',
+            'ANURAS.NS',
+            'APARINDS.NS',
+            'APEX.NS',
+            'APOLLOHOSP.NS',
+            'APOLLOPIPE.NS',
+            'ARFIN.NS',
+            'ARMANFIN.NS',
+            'ARVIND.NS',
+            'ASIANPAINT.NS',
+            'ASTERDM.NS',
+            'ASTRAL.NS',
+            'ATGL.NS',
+            'ATHERENERG.NS',
+            'ATLANTAELE.NS',
+            'AUROPHARMA.NS',
+            'AVADHSUGAR.NS',
+            'AVALON.NS',
+            'AVL.NS',
+            'AXISBANK.NS',
+            'AXISCADES.NS',
+            'BAJAJCON.NS',
+            'BAJAJFINSV.NS',
+            'BAJAJHCARE.NS',
+            'BAJFINANCE.NS',
+            'BALAMINES.NS',
+            'BANKBARODA.NS',
+            'BAYERCROP.NS',
+            'BDL.NS',
+            'BEL.NS',
+            'BELRISE.NS',
+            'BEPL.NS',
+            'BERGEPAINT.NS',
+            'BHARTIARTL.NS',
+            'BHARTIHEXA.NS',
+            'BHEL.NS',
+            'BIKAJI.NS',
+            'BIOCON.NS',
+            'BLACKBUCK.NS',
+            'BLS.NS',
+            'BLSE.NS',
+            'BLUESTARCO.NS',
+            'BLUESTONE.NS',
+            'BPCL.NS',
+            'BRITANNIA.NS',
+            'BSE.NS',
+            'BUILDPRO.NS',
+            'CANBK.NS',
+            'CANFINHOME.NS',
+            'CAPACITE.NS',
+            'CARBORUNIV.NS',
+            'CCL.NS',
+            'CEATLTD.NS',
+            'CEIGALL.NS',
+            'CENTUM.NS',
+            'CENTURYPLY.NS',
+            'CERA.NS',
+            'CEWATER.NS',
+            'CGCL.NS',
+            'CHENNPETRO.NS',
+            'CHOLAFIN.NS',
+            'CIPLA.NS',
+            'COALINDIA.NS',
+            'COCHINSHIP.NS',
+            'COHANCE.NS',
+            'CONCOR.NS',
+            'CONFIPET.NS',
+            'CRAMC.NS',
+            'CROMPTON.NS',
+            'CUMMINSIND.NS',
+            'CUPID.NS',
+            'DABUR.NS',
+            'DALBHARAT.NS',
+            'DALMIASUG.NS',
+            'DATAMATICS.NS',
+            'DATAPATTNS.NS',
+            'DCBBANK.NS',
+            'DCMSHRIRAM.NS',
+            'DEEPINDS.NS',
+            'DELHIVERY.NS',
+            'DHAMPURSUG.NS',
+            'DIVGIITTS.NS',
+            'DIVISLAB.NS',
+            'DIXON.NS',
+            'DLINKINDIA.NS',
+            'DMART.NS',
+            'DOMS.NS',
+            'DRREDDY.NS',
+            'DWARKESH.NS',
+            'EBGNG.NS',
+            'EICHERMOT.NS',
+            'EIMCOELECO.NS',
+            'ELECTCAST.NS',
+            'EMCURE.NS',
+            'EMMVEE.NS',
+            'ENGINERSIN.NS',
+            'ENTERO.NS',
+            'EPIGRAL.NS',
+            'ETERNAL.NS',
+            'FACT.NS',
+            'FEDERALBNK.NS',
+            'FEDFINA.NS',
+            'FIEMIND.NS',
+            'FIRSTCRY.NS',
+            'FISCHER.NS',
+            'FORCEMOT.NS',
+            'GABRIEL.NS',
+            'GAIL.NS',
+            'GESHIP.NS',
+            'GLAND.NS',
+            'GLENMARK.NS',
+            'GLOBUSSPR.NS',
+            'GMBREW.NS',
+            'GMDCLTD.NS',
+            'GODAVARIB.NS',
+            'GODREJCP.NS',
+            'GOKULAGRO.NS',
+            'GPIL.NS',
+            'GRANULES.NS',
+            'GRASIM.NS',
+            'GROWW.NS',
+            'GUJALKALI.NS',
+            'GUJGASLTD.NS',
+            'GVT&D.NS',
+            'HAL.NS',
+            'HAPPSTMNDS.NS',
+            'HAVELLS.NS',
+            'HBLENGINE.NS',
+            'HCLTECH.NS',
+            'HDFCBANK.NS',
+            'HEROMOTOCO.NS',
+            'HFCL.NS',
+            'HINDALCO.NS',
+            'HINDPETRO.NS',
+            'HINDUNILVR.NS',
+            'HONASA.NS',
+            'HSCL.NS',
+            'ICICIBANK.NS',
+            'IDFCFIRSTB.NS',
+            'IEX.NS',
+            'IGIL.NS',
+            'IGL.NS',
+            'INDGN.NS',
+            'INDIANB.NS',
+            'INDIASHLTR.NS',
+            'INDIGO.NS',
+            'INDRAMEDCO.NS',
+            'INDSWFTLAB.NS',
+            'INDUSINDBK.NS',
+            'INFY.NS',
+            'INOXINDIA.NS',
+            'IOB.NS',
+            'IOC.NS',
+            'IOLCP.NS',
+            'IPCALAB.NS',
+            'IRB.NS',
+            'IRCON.NS',
+            'IRCTC.NS',
+            'IREDA.NS',
+            'IRFC.NS',
+            'ISGEC.NS',
+            'ITC.NS',
+            'IXIGO.NS',
+            'JAINREC.NS',
+            'JARO.NS',
+            'JAYNECOIND.NS',
+            'JBCHEPHARM.NS',
+            'JBMA.NS',
+            'JINDALSTEL.NS',
+            'JKCEMENT.NS',
+            'JKPAPER.NS',
+            'JMFINANCIL.NS',
+            'JNKINDIA.NS',
+            'JSFB.NS',
+            'JSWENERGY.NS',
+            'JSWINFRA.NS',
+            'JSWSTEEL.NS',
+            'JUBLINGREA.NS',
+            'JUBLPHARMA.NS',
+            'KEC.NS',
+            'KECL.NS',
+            'KFINTECH.NS',
+            'KIOCL.NS',
+            'KIRLPNU.NS',
+            'KOTAKBANK.NS',
+            'KPEL.NS',
+            'KPIGREEN.NS',
+            'KRN.NS',
+            'KSB.NS',
+            'KSCL.NS',
+            'KSHINTL.NS',
+            'KTKBANK.NS',
+            'LAURUSLABS.NS',
+            'LICI.NS',
+            'LINDEINDIA.NS',
+            'LT.NS',
+            'LTF.NS',
+            'LUMAXTECH.NS',
+            'LUPIN.NS',
+            'LUXIND.NS',
+            'M&M.NS',
+            'MAHABANK.NS',
+            'MAHSEAMLES.NS',
+            'MANGLMCEM.NS',
+            'MARUTI.NS',
+            'MAYURUNIQ.NS',
+            'MAZDOCK.NS',
+            'MBAPL.NS',
+            'MEDPLUS.NS',
+            'MEESHO.NS',
+            'MGL.NS',
+            'MIDWESTLTD.NS',
+            'MINDACORP.NS',
+            'MOIL.NS',
+            'MPSLTD.NS',
+            'MTARTECH.NS',
+            'NACLIND.NS',
+            'NATCOPHARM.NS',
+            'NATIONALUM.NS',
+            'NAUKRI.NS',
+            'NAVA.NS',
+            'NAVINFLUOR.NS',
+            'NESTLEIND.NS',
+            'NHPC.NS',
+            'NINSYS.NS',
+            'NITCO.NS',
+            'NLCINDIA.NS',
+            'NMDC.NS',
+            'NOCIL.NS',
+            'NPST.NS',
+            'NTPC.NS',
+            'NTPCGREEN.NS',
+            'OBEROIRLTY.NS',
+            'OCCLLTD.NS',
+            'OLECTRA.NS',
+            'ONGC.NS',
+            'ORKLAINDIA.NS',
+            'OSWALPUMPS.NS',
+            'PAGEIND.NS',
+            'PAISALO.NS',
+            'PARACABLES.NS',
+            'PARKHOSPS.NS',
+            'PAYTM.NS',
+            'PERSISTENT.NS',
+            'PETRONET.NS',
+            'PFC.NS',
+            'PFOCUS.NS',
+            'PIDILITIND.NS',
+            'PLATIND.NS',
+            'PNB.NS',
+            'PNBHOUSING.NS',
+            'PNGJL.NS',
+            'POCL.NS',
+            'POLYCAB.NS',
+            'POLYMED.NS',
+            'PONNIERODE.NS',
+            'POWERGRID.NS',
+            'POWERINDIA.NS',
+            'PRECWIRE.NS',
+            'PREMIERENE.NS',
+            'PREMIERPOL.NS',
+            'PRICOLLTD.NS',
+            'PRIVISCL.NS',
+            'PTC.NS',
+            'PWL.NS',
+            'QPOWER.NS',
+            'RAINBOW.NS',
+            'RAMCOCEM.NS',
+            'RATNAMANI.NS',
+            'RBLBANK.NS',
+            'RECLTD.NS',
+            'RELIANCE.NS',
+            'RELIGARE.NS',
+            'RIIL.NS',
+            'RITES.NS',
+            'RUBICON.NS',
+            'RVNL.NS',
+            'SAIL.NS',
+            'SAILIFE.NS',
+            'SAKAR.NS',
+            'SAMBHV.NS',
+            'SANSERA.NS',
+            'SARDAEN.NS',
+            'SBIN.NS',
+            'SCHAEFFLER.NS',
+            'SCHNEIDER.NS',
+            'SCODATUBES.NS',
+            'SEAMECLTD.NS',
+            'SERVOTECH.NS',
+            'SGFIN.NS',
+            'SGMART.NS',
+            'SHAILY.NS',
+            'SHILPAMED.NS',
+            'SHREECEM.NS',
+            'SHRIPISTON.NS',
+            'SHRIRAMFIN.NS',
+            'SHYAMMETL.NS',
+            'SIEMENS.NS',
+            'SIRCA.NS',
+            'SJS.NS',
+            'SJVN.NS',
+            'SKIPPER.NS',
+            'SMSPHARMA.NS',
+            'SOLARA.NS',
+            'SOLEX.NS',
+            'SONACOMS.NS',
+            'SOUTHWEST.NS',
+            'SPLPETRO.NS',
+            'SPORTKING.NS',
+            'SRM.NS',
+            'STAR.NS',
+            'STARHEALTH.NS',
+            'STYLEBAAZA.NS',
+            'SUNPHARMA.NS',
+            'SUNTV.NS',
+            'SUPREMEIND.NS',
+            'SUZLON.NS',
+            'SYRMA.NS',
+            'TARIL.NS',
+            'TATAMOTORS.NS',
+            'TATAPOWER.NS',
+            'TATASTEEL.NS',
+            'TATVA.NS',
+            'TCS.NS',
+            'TDPOWERSYS.NS',
+            'TECHM.NS',
+            'TEJASNET.NS',
+            'THERMAX.NS',
+            'THYROCARE.NS',
+            'TI.NS',
+            'TIINDIA.NS',
+            'TITAN.NS',
+            'TORNTPHARM.NS',
+            'TORNTPOWER.NS',
+            'TRENT.NS',
+            'TVSELECT.NS',
+            'UBL.NS',
+            'UGARSUGAR.NS',
+            'ULTRACEMCO.NS',
+            'UNIONBANK.NS',
+            'UNIVCABLES.NS',
+            'UNOMINDA.NS',
+            'URBANCO.NS',
+            'UTLSOLAR.NS',
+            'UTTAMSUGAR.NS',
+            'VBL.NS',
+            'VEDL.NS',
+            'VENUSREM.NS',
+            'VGUARD.NS',
+            'VIDYAWIRES.NS',
+            'VIKRAMSOLR.NS',
+            'VINCOFE.NS',
+            'VOLTAMP.NS',
+            'VOLTAS.NS',
+            'VTL.NS',
+            'WAAREEENER.NS',
+            'WAAREEINDO.NS',
+            'WAAREERTL.NS',
+            'WABAG.NS',
+            'WEBELSOLAR.NS',
+            'WELCORP.NS',
+            'WHEELS.NS',
+            'WHIRLPOOL.NS',
+            'WIPRO.NS',
+            'XPROINDIA.NS',
+            'YATHARTH.NS',
+            'ZYDUSLIFE.NS',
+            'ZYDUSWELL.NS'
         ];
 
         let selectedPortfolio = [];
@@ -666,16 +1098,60 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const dl = document.getElementById('tickersList');
-            INDIAN_TICKERS.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t;
-                dl.appendChild(opt);
+            const tickerInput = document.getElementById('tickerSelect');
+            const autocompleteList = document.getElementById('autocompleteList');
+
+            tickerInput.addEventListener('input', function() {
+                const val = this.value.toUpperCase();
+                autocompleteList.innerHTML = '';
+                if (!val) {
+                    autocompleteList.style.display = 'none';
+                    tickerInput.classList.remove('has-suggestions');
+                    return;
+                }
+
+                const matches = INDIAN_TICKERS.filter(t => t.includes(val)).slice(0, 15);
+                if (matches.length > 0) {
+                    matches.forEach(match => {
+                        const item = document.createElement('div');
+                        item.className = 'autocomplete-item';
+                        // Highlight the matching part
+                        const index = match.indexOf(val);
+                        const before = match.substring(0, index);
+                        const middle = match.substring(index, index + val.length);
+                        const after = match.substring(index + val.length);
+                        item.innerHTML = `${before}<strong>${middle}</strong>${after}`;
+                        
+                        item.addEventListener('click', () => {
+                            tickerInput.value = match;
+                            autocompleteList.style.display = 'none';
+                            tickerInput.classList.remove('has-suggestions');
+                            addTicker();
+                        });
+                        autocompleteList.appendChild(item);
+                    });
+                    autocompleteList.style.display = 'block';
+                    tickerInput.classList.add('has-suggestions');
+                } else {
+                    autocompleteList.style.display = 'none';
+                    tickerInput.classList.remove('has-suggestions');
+                }
             });
 
-            document.getElementById('tickerSelect').addEventListener('keypress', function (e) {
+            // Close list when clicking outside
+            document.addEventListener('click', (e) => {
+                if (e.target !== tickerInput) {
+                    autocompleteList.style.display = 'none';
+                    tickerInput.classList.remove('has-suggestions');
+                }
+            });
+
+            tickerInput.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
+                    // If focusing on a specific item (future proofing) or just adding
                     addTicker();
+                    autocompleteList.style.display = 'none';
+                    tickerInput.classList.remove('has-suggestions');
                 }
             });
         });
