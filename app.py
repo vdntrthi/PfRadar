@@ -19,20 +19,25 @@ app.add_middleware(
 )
 
 @app.get("/api/report")
-def get_report(tickers: str, weights: str, risk: float | None = None):
+def get_report(tickers: str, weights: str, risk: float | None = None, period: str = "12M"):
     try:
         t_list = [t.strip() for t in tickers.split(",") if t.strip()]
         w_list = [float(w.strip()) for w in weights.split(",") if w.strip()]
         
         if len(t_list) != len(w_list):
             raise HTTPException(status_code=400, detail="Number of tickers must match number of weights")
+        
+        valid_periods = {"1M", "3M", "6M", "12M"}
+        if period not in valid_periods:
+            raise HTTPException(status_code=400, detail=f"Invalid period. Choose from: {valid_periods}")
             
         target_weights = dict(zip(t_list, w_list))
         
         report_data = build_full_report(
             tickers=t_list,
             target_weights=target_weights,
-            risk_score=risk
+            risk_score=risk,
+            chart_period=period,
         )
         return report_data
     except Exception as e:

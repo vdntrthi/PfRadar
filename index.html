@@ -425,6 +425,55 @@
             .metrics-grid {
                 grid-template-columns: 1fr;
             }
+            .period-toggle {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Period Toggle Switch */
+        .period-toggle-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .period-toggle {
+            display: flex;
+            background: rgba(45, 94, 63, 0.06);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 2px;
+            border: 1px solid rgba(45, 94, 63, 0.12);
+        }
+
+        .period-btn {
+            padding: 0.5rem 1.1rem;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            letter-spacing: 0.02em;
+        }
+
+        .period-btn:hover {
+            color: var(--accent-user);
+            background: rgba(46, 125, 91, 0.06);
+        }
+
+        .period-btn.active {
+            background: linear-gradient(135deg, var(--accent-brand-dark), var(--accent-user));
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(45, 94, 63, 0.25);
+        }
+
+        .period-btn.active:hover {
+            opacity: 0.92;
         }
     </style>
 </head>
@@ -466,9 +515,20 @@
             </div>
             
             <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; justify-content: space-between; border-top: 1px solid rgba(45,94,63,0.08); padding-top: 1.5rem;">
-                <div class="input-group risk-group" style="margin-bottom: 0;">
-                    <label class="input-label">Risk Profile: <strong id="riskLabel" style="color: var(--accent-user);">0.5</strong></label>
-                    <input type="range" id="riskInput" min="0" max="1" step="0.05" value="0.5" oninput="document.getElementById('riskLabel').innerText = this.value" class="risk-slider">
+                <div style="display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="input-group risk-group" style="margin-bottom: 0;">
+                        <label class="input-label">Risk Profile: <strong id="riskLabel" style="color: var(--accent-user);">0.5</strong></label>
+                        <input type="range" id="riskInput" min="0" max="1" step="0.05" value="0.5" oninput="document.getElementById('riskLabel').innerText = this.value" class="risk-slider">
+                    </div>
+                    <div class="period-toggle-group">
+                        <label class="input-label">Returns Period</label>
+                        <div class="period-toggle" id="periodToggle">
+                            <button type="button" class="period-btn" data-period="1M" onclick="selectPeriod('1M')">1M</button>
+                            <button type="button" class="period-btn" data-period="3M" onclick="selectPeriod('3M')">3M</button>
+                            <button type="button" class="period-btn" data-period="6M" onclick="selectPeriod('6M')">6M</button>
+                            <button type="button" class="period-btn active" data-period="12M" onclick="selectPeriod('12M')">12M</button>
+                        </div>
+                    </div>
                 </div>
                 <button onclick="handleFetchReport()" class="analyze-btn" id="analyzeBtn">
                     Analyze Live
@@ -481,14 +541,14 @@
             <div class="metrics-grid" id="metricsGrid">
             <div class="metric-card">
                 <div class="metric-title">
-                    <div class="dot dot-user"></div>User Portfolio (Ann. Return)
+                    <div class="dot dot-user"></div><span id="userReturnTitle">Your Portfolio Return (12M)</span>
                 </div>
                 <div class="metric-value" id="userReturn">--</div>
                 <div class="metric-change" id="userRisk">--</div>
             </div>
             <div class="metric-card">
                 <div class="metric-title">
-                    <div class="dot dot-optimal"></div>Optimal Portfolio (Ann. Return)
+                    <div class="dot dot-optimal"></div><span id="optReturnTitle">Optimal Portfolio Return (12M)</span>
                 </div>
                 <div class="metric-value" id="optReturn">--</div>
                 <div class="metric-change" id="optRisk">--</div>
@@ -539,7 +599,7 @@
 
         <!-- Performance Chart -->
         <div class="chart-container">
-            <h2><span class="icon">📈</span> Portfolio Performance (1Y)</h2>
+            <h2 id="perfChartTitle"><span class="icon">📈</span> Portfolio Performance (12M)</h2>
             <div class="loading" id="loader" style="display: none;">
                 <div class="spinner"></div>
                 <span>Loading live insights...</span>
@@ -549,7 +609,7 @@
 
         <!-- Asset Breakdown Chart -->
         <div class="chart-container">
-            <h2><span class="icon">🏛️</span> Individual Asset Performance (1Y)</h2>
+            <h2 id="assetChartTitle"><span class="icon">🏛️</span> Individual Asset Performance (12M)</h2>
             <div class="loading" id="loaderAsset" style="display: none;">
                 <div class="spinner"></div>
                 <span>Loading asset insights...</span>
@@ -571,6 +631,14 @@
         ];
 
         let selectedPortfolio = [];
+        let selectedPeriod = '12M';
+
+        function selectPeriod(period) {
+            selectedPeriod = period;
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.period === period);
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const dl = document.getElementById('tickersList');
@@ -710,6 +778,12 @@
             fetchReport(tickers, weights, risk);
         }
 
+        function updateChartTitles(period) {
+            const label = period === '12M' ? '1Y' : period;
+            document.getElementById('perfChartTitle').innerHTML = `<span class="icon">📈</span> Portfolio Performance (${label})`;
+            document.getElementById('assetChartTitle').innerHTML = `<span class="icon">🏛️</span> Individual Asset Performance (${label})`;
+        }
+
         function fetchReport(tickers, weights, risk) {
             loader.style.display = 'flex';
             loaderAsset.style.display = 'flex';
@@ -724,23 +798,47 @@
             userCagrEl.innerText = '...';
             optCagrEl.innerText = '...';
 
-            fetch(`/api/report?tickers=${encodeURIComponent(tickers)}&weights=${encodeURIComponent(weights)}&risk=${encodeURIComponent(risk)}`)
+            fetch(`/api/report?tickers=${encodeURIComponent(tickers)}&weights=${encodeURIComponent(weights)}&risk=${encodeURIComponent(risk)}&period=${encodeURIComponent(selectedPeriod)}`)
                 .then(response => {
                     if (!response.ok) return response.json().then(err => { throw new Error(err.detail) });
                     return response.json();
                 })
                 .then(data => {
-                    // Return / Risk cards
-                    userReturnEl.innerText = (data.expected_return * 100).toFixed(2) + '%';
-                    userRiskEl.innerText = 'Risk: ' + (data.volatility * 100).toFixed(2) + '%';
+                    const chartData = data.historical_chart_data;
+                    const period = chartData.period || selectedPeriod;
+                    const periodLabel = period === '12M' ? '1Y' : period;
 
-                    const optReturn = data.target_risk_expected_return !== null ? data.target_risk_expected_return : data.meta.max_sharpe_annual_return;
-                    const optRiskVal = data.target_risk_volatility !== null ? data.target_risk_volatility : data.meta.max_sharpe_annual_volatility;
+                    // Update metric card titles with the period
+                    document.getElementById('userReturnTitle').textContent = `Your Portfolio Return (${periodLabel})`;
+                    document.getElementById('optReturnTitle').textContent = `Optimal Portfolio Return (${periodLabel})`;
+
+                    // Period-specific return cards
+                    const userPeriodReturn = chartData.period_return_user;
+                    const optPeriodReturn = chartData.period_return_optimal;
+                    const userPeriodVol = chartData.period_volatility_user;
+                    const optPeriodVol = chartData.period_volatility_optimal;
+
+                    if (userPeriodReturn !== null && userPeriodReturn !== undefined) {
+                        const sign = userPeriodReturn >= 0 ? '+' : '';
+                        userReturnEl.innerText = sign + (userPeriodReturn * 100).toFixed(2) + '%';
+                        userReturnEl.className = `metric-value ${userPeriodReturn >= 0 ? 'cagr-positive' : 'cagr-negative'}`;
+                    } else {
+                        userReturnEl.innerText = '--';
+                        userReturnEl.className = 'metric-value';
+                    }
+                    userRiskEl.innerText = userPeriodVol !== null ? 'Volatility: ' + (userPeriodVol * 100).toFixed(2) + '%' : '--';
+
+                    if (optPeriodReturn !== null && optPeriodReturn !== undefined) {
+                        const sign = optPeriodReturn >= 0 ? '+' : '';
+                        optReturnEl.innerText = sign + (optPeriodReturn * 100).toFixed(2) + '%';
+                        optReturnEl.className = `metric-value ${optPeriodReturn >= 0 ? 'cagr-positive' : 'cagr-negative'}`;
+                    } else {
+                        optReturnEl.innerText = '--';
+                        optReturnEl.className = 'metric-value';
+                    }
+                    optRiskEl.innerText = optPeriodVol !== null ? 'Volatility: ' + (optPeriodVol * 100).toFixed(2) + '%' : '--';
+
                     const optWeights = data.target_risk_portfolio !== null ? data.target_risk_portfolio : data.optimal_weights;
-
-                    optReturnEl.innerText = (optReturn * 100).toFixed(2) + '%';
-                    optRiskEl.innerText = 'Risk: ' + (optRiskVal * 100).toFixed(2) + '%';
-
                     let weightsStr = "";
                     for (const [sym, w] of Object.entries(optWeights)) {
                         weightsStr += `<div><strong>${sym}:</strong> ${(w * 100).toFixed(1)}%</div>`;
@@ -759,9 +857,12 @@
                     // Efficient frontier
                     drawFrontierChart(data.efficient_frontier_data);
 
+                    // Update chart titles with selected period
+                    updateChartTitles(period);
+
                     // Performance charts
-                    drawChart(data.historical_chart_data);
-                    drawAssetChart(data.historical_chart_data);
+                    drawChart(chartData);
+                    drawAssetChart(chartData);
                 })
                 .catch(err => {
                     loader.innerHTML = `<span style="color: #ef4444; width:100%; text-align:center;">Error: ${err.message}</span>`;

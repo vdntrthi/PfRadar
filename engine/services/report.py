@@ -50,6 +50,7 @@ def build_full_report(
     random_seed: int = 42,
     min_history_trading_days: int = 60,
     risk_score: float | None = None,
+    chart_period: str = "12M",
 ) -> dict[str, Any]:
 
     rf = float(DEFAULT_RISK_FREE_ANNUAL_IN if risk_free_annual is None else risk_free_annual)
@@ -189,30 +190,54 @@ def build_full_report(
     import pandas as pd
     from utils.returns import portfolio_daily_returns
 
+    # Map chart_period string to a DateOffset
+    _period_map = {
+        "1M": pd.DateOffset(months=1),
+        "3M": pd.DateOffset(months=3),
+        "6M": pd.DateOffset(months=6),
+        "12M": pd.DateOffset(years=1),
+    }
+    chart_offset = _period_map.get(chart_period, pd.DateOffset(years=1))
+
     last_date = rets.index[-1]
-    start_1y = last_date - pd.DateOffset(years=1)
+    start_chart = last_date - chart_offset
     
-    mask_1y = rets.index >= start_1y
-    rets_1y = rets.loc[mask_1y]
+    mask_chart = rets.index >= start_chart
+    rets_period = rets.loc[mask_chart]
     
-    user_returns_1y = portfolio_daily_returns(rets_1y, w_ref, symbols_order=list(used_syms))
+    user_returns_period = portfolio_daily_returns(rets_period, w_ref, symbols_order=list(used_syms))
     
     opt_w = w_target_risk if risk_score is not None else w_ms
-    opt_returns_1y = portfolio_daily_returns(rets_1y, opt_w, symbols_order=list(used_syms))
+    opt_returns_period = portfolio_daily_returns(rets_period, opt_w, symbols_order=list(used_syms))
 
-    market_returns_1y = market_returns.loc[market_returns.index.isin(rets_1y.index)]
-    market_returns_aligned = market_returns_1y.reindex(rets_1y.index).fillna(0.0)
+    market_returns_period = market_returns.loc[market_returns.index.isin(rets_period.index)]
+    market_returns_aligned = market_returns_period.reindex(rets_period.index).fillna(0.0)
 
-    cum_user = (1 + user_returns_1y).cumprod() - 1
-    cum_opt = (1 + opt_returns_1y).cumprod() - 1
+    cum_user = (1 + user_returns_period).cumprod() - 1
+    cum_opt = (1 + opt_returns_period).cumprod() - 1
     cum_bench = (1 + market_returns_aligned).cumprod() - 1
 
+    # Period-specific total returns (last value of cumulative series)
+    period_return_user = float(cum_user.iloc[-1]) if len(cum_user) > 0 else None
+    period_return_optimal = float(cum_opt.iloc[-1]) if len(cum_opt) > 0 else None
+    period_return_benchmark = float(cum_bench.iloc[-1]) if len(cum_bench) > 0 else None
+
+    # Period-specific volatility (annualized from the period's daily returns)
+    period_vol_user = float(user_returns_period.std() * np.sqrt(TRADING_DAYS_PER_YEAR)) if len(user_returns_period) > 1 else None
+    period_vol_optimal = float(opt_returns_period.std() * np.sqrt(TRADING_DAYS_PER_YEAR)) if len(opt_returns_period) > 1 else None
+
     historical_chart_data = {
-        "dates": [d.strftime("%Y-%m-%d") for d in rets_1y.index],
+        "dates": [d.strftime("%Y-%m-%d") for d in rets_period.index],
         "user_portfolio": [float(x) for x in cum_user],
         "optimal_portfolio": [float(x) for x in cum_opt],
         "benchmark_nifty50": [float(x) for x in cum_bench],
-        "assets": {sym: [float(x) for x in ((1 + rets_1y[sym]).cumprod() - 1)] for sym in used_syms}
+        "assets": {sym: [float(x) for x in ((1 + rets_period[sym]).cumprod() - 1)] for sym in used_syms},
+        "period": chart_period,
+        "period_return_user": period_return_user,
+        "period_return_optimal": period_return_optimal,
+        "period_return_benchmark": period_return_benchmark,
+        "period_volatility_user": period_vol_user,
+        "period_volatility_optimal": period_vol_optimal,
     }
 
     # ================= PORTFOLIO-LEVEL CAGR =================
