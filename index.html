@@ -12,18 +12,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: rgba(22, 28, 45, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --accent-user: #38bdf8;
-            --accent-optimal: #a855f7;
+            --bg-color: #f4f7f5;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(60, 100, 70, 0.10);
+            --text-primary: #1a2e22;
+            --text-secondary: #5a7a66;
+            --accent-user: #2e7d5b;
+            --accent-optimal: #6b9e7e;
             --accent-benchmark: #10b981;
             --accent-minvar: #22c55e;
-            --accent-maxsharpe: #f59e0b;
-            --glow-optimal: rgba(168, 85, 247, 0.2);
-            --glow-user: rgba(56, 189, 248, 0.2);
+            --accent-maxsharpe: #d4a017;
+            --glow-optimal: rgba(107, 158, 126, 0.12);
+            --glow-user: rgba(46, 125, 91, 0.10);
+            --accent-brand-dark: #2d5e3f;
+            --accent-brand-light: #8fbfa3;
+            --shadow-card: 0 4px 24px rgba(45, 94, 63, 0.08);
         }
 
         * {
@@ -41,8 +44,8 @@
             flex-direction: column;
             align-items: center;
             background-image:
-                radial-gradient(ellipse at top left, var(--glow-user), transparent 40%),
-                radial-gradient(ellipse at bottom right, var(--glow-optimal), transparent 40%);
+                radial-gradient(ellipse at top left, var(--glow-user), transparent 50%),
+                radial-gradient(ellipse at bottom right, var(--glow-optimal), transparent 50%);
             background-attachment: fixed;
         }
 
@@ -62,11 +65,21 @@
             font-family: 'Outfit', sans-serif;
             font-size: 3rem;
             font-weight: 700;
-            background: linear-gradient(to right, #fff, #a5b4fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-primary);
             margin-bottom: 0.5rem;
             letter-spacing: -0.02em;
+        }
+
+        .header-logo {
+            height: 72px;
+            width: auto;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 2px 8px rgba(45, 94, 63, 0.12));
+            transition: transform 0.3s ease;
+        }
+
+        .header-logo:hover {
+            transform: scale(1.03);
         }
 
         p.subtitle {
@@ -83,18 +96,19 @@
 
         .metric-card {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 1.5rem;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow-card);
         }
 
         .metric-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(45, 94, 63, 0.13);
+            border-color: rgba(46, 125, 91, 0.2);
         }
 
         .metric-title {
@@ -116,22 +130,22 @@
 
         .dot-user {
             background-color: var(--accent-user);
-            box-shadow: 0 0 10px var(--accent-user);
+            box-shadow: 0 0 8px rgba(46, 125, 91, 0.35);
         }
 
         .dot-optimal {
             background-color: var(--accent-optimal);
-            box-shadow: 0 0 10px var(--accent-optimal);
+            box-shadow: 0 0 8px rgba(107, 158, 126, 0.35);
         }
 
         .dot-cagr-user {
-            background: linear-gradient(135deg, var(--accent-user), #6366f1);
-            box-shadow: 0 0 10px var(--accent-user);
+            background: linear-gradient(135deg, var(--accent-user), #3a8f6a);
+            box-shadow: 0 0 8px rgba(46, 125, 91, 0.3);
         }
 
         .dot-cagr-opt {
-            background: linear-gradient(135deg, var(--accent-optimal), #ec4899);
-            box-shadow: 0 0 10px var(--accent-optimal);
+            background: linear-gradient(135deg, var(--accent-optimal), #4db882);
+            box-shadow: 0 0 8px rgba(107, 158, 126, 0.3);
         }
 
         .metric-value {
@@ -164,16 +178,16 @@
 
         .chart-container {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             border-radius: 20px;
             padding: 2rem;
             height: 500px;
             width: 100%;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 2rem;
+            box-shadow: var(--shadow-card);
+            margin-bottom: calc(2rem + 30px);
         }
 
         .chart-container h2 {
@@ -207,16 +221,16 @@
         .spinner {
             width: 40px;
             height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(45, 94, 63, 0.12);
             border-radius: 50%;
-            border-top-color: var(--accent-optimal);
+            border-top-color: var(--accent-user);
             animation: spin 1s ease-in-out infinite;
         }
 
         .input-form {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 1.5rem;
@@ -225,6 +239,7 @@
             gap: 1rem;
             align-items: flex-end;
             flex-wrap: wrap;
+            box-shadow: var(--shadow-card);
         }
 
         .input-group {
@@ -248,23 +263,29 @@
             width: 100%;
             padding: 0.75rem 1rem;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
+            border: 1px solid rgba(45, 94, 63, 0.18);
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--text-primary);
             font-family: 'Inter';
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .input-field:focus {
-            border-color: rgba(168, 85, 247, 0.5);
+            border-color: var(--accent-user);
+            box-shadow: 0 0 0 3px rgba(46, 125, 91, 0.12);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
         }
 
         .risk-slider {
             width: 100%;
             padding: 0.5rem 0;
-            accent-color: var(--accent-optimal);
+            accent-color: var(--accent-user);
             cursor: pointer;
         }
 
@@ -272,17 +293,19 @@
             padding: 0.75rem 2rem;
             border-radius: 8px;
             border: none;
-            background: linear-gradient(to right, var(--accent-user), #6366f1);
+            background: linear-gradient(135deg, var(--accent-brand-dark), var(--accent-user));
             color: white;
             font-weight: 600;
             font-size: 1rem;
             cursor: pointer;
-            transition: opacity 0.2s, transform 0.15s;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 2px 12px rgba(45, 94, 63, 0.2);
         }
 
         .analyze-btn:hover {
-            opacity: 0.9;
+            opacity: 0.92;
             transform: translateY(-1px);
+            box-shadow: 0 4px 18px rgba(45, 94, 63, 0.3);
         }
 
         .analyze-btn:active {
@@ -358,9 +381,9 @@
         }
 
         .remove-btn {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.08);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.25);
             padding: 0.4rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
@@ -378,16 +401,17 @@
             max-width: 120px;
             padding: 0.4rem 0.75rem;
             border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
+            border: 1px solid rgba(45, 94, 63, 0.18);
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--text-primary);
             font-family: 'Inter';
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         
         .table-input:focus {
             border-color: var(--accent-user);
+            box-shadow: 0 0 0 3px rgba(46, 125, 91, 0.12);
         }
 
         @media (max-width: 768px) {
@@ -408,7 +432,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>PfRadar</h1>
+            <img src="/assets/logo.png" alt="PfRadar" class="header-logo">
             <p class="subtitle">Portfolio Optimization Engine</p>
         </header>
 
@@ -425,7 +449,7 @@
         </div>
 
         <!-- Tickers Table and Controls -->
-        <div id="portfolioControls" style="display: none; background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+        <div id="portfolioControls" style="display: none; background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-card);">
             <div style="overflow-x: auto; margin-bottom: 1.5rem;">
                 <table class="tickers-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                     <thead>
@@ -441,9 +465,9 @@
                 <div id="weightWarning" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem; display: none;">Total weight must equal exactly 1.0</div>
             </div>
             
-            <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+            <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; justify-content: space-between; border-top: 1px solid rgba(45,94,63,0.08); padding-top: 1.5rem;">
                 <div class="input-group risk-group" style="margin-bottom: 0;">
-                    <label class="input-label">Risk Profile: <strong id="riskLabel" style="color: var(--accent-optimal);">0.5</strong></label>
+                    <label class="input-label">Risk Profile: <strong id="riskLabel" style="color: var(--accent-user);">0.5</strong></label>
                     <input type="range" id="riskInput" min="0" max="1" step="0.05" value="0.5" oninput="document.getElementById('riskLabel').innerText = this.value" class="risk-slider">
                 </div>
                 <button onclick="handleFetchReport()" class="analyze-btn" id="analyzeBtn">
@@ -626,7 +650,7 @@
 
             selectedPortfolio.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                tr.style.borderBottom = '1px solid rgba(45,94,63,0.08)';
                 tr.innerHTML = `
                     <td style="padding: 0.75rem; font-weight: 600;">${item.ticker}</td>
                     <td style="padding: 0.75rem;">
@@ -793,8 +817,8 @@
                         {
                             label: 'Random Portfolios',
                             data: cloudData,
-                            backgroundColor: 'rgba(148, 163, 184, 0.2)',
-                            borderColor: 'rgba(148, 163, 184, 0.35)',
+                            backgroundColor: 'rgba(107, 158, 126, 0.18)',
+                            borderColor: 'rgba(107, 158, 126, 0.3)',
                             pointRadius: 2.5,
                             pointHoverRadius: 5,
                             order: 5,
@@ -802,7 +826,7 @@
                         {
                             label: 'Your Portfolio',
                             data: userPoint,
-                            backgroundColor: '#38bdf8',
+                            backgroundColor: '#2e7d5b',
                             borderColor: '#fff',
                             borderWidth: 2,
                             pointRadius: 10,
@@ -813,7 +837,7 @@
                         {
                             label: 'Optimized Portfolio',
                             data: optPoint,
-                            backgroundColor: '#a855f7',
+                            backgroundColor: '#6b9e7e',
                             borderColor: '#fff',
                             borderWidth: 2,
                             pointRadius: 10,
@@ -857,10 +881,10 @@
                             display: false,
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                            titleColor: '#94a3b8',
-                            bodyColor: '#f8fafc',
-                            borderColor: 'rgba(255,255,255,0.12)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+                            titleColor: '#5a7a66',
+                            bodyColor: '#1a2e22',
+                            borderColor: 'rgba(45,94,63,0.15)',
                             borderWidth: 1,
                             padding: 14,
                             cornerRadius: 10,
@@ -877,12 +901,12 @@
                             title: {
                                 display: true,
                                 text: 'Annualized Volatility (%)',
-                                color: '#94a3b8',
+                                color: '#5a7a66',
                                 font: { family: 'Inter', size: 13, weight: 500 },
                             },
-                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            grid: { color: 'rgba(45,94,63,0.07)', drawBorder: false },
                             ticks: {
-                                color: '#64748b',
+                                color: '#5a7a66',
                                 font: { family: 'Inter' },
                                 callback: (val) => val.toFixed(1) + '%',
                             },
@@ -891,12 +915,12 @@
                             title: {
                                 display: true,
                                 text: 'Annualized Return (%)',
-                                color: '#94a3b8',
+                                color: '#5a7a66',
                                 font: { family: 'Inter', size: 13, weight: 500 },
                             },
-                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            grid: { color: 'rgba(45,94,63,0.07)', drawBorder: false },
                             ticks: {
-                                color: '#64748b',
+                                color: '#5a7a66',
                                 font: { family: 'Inter' },
                                 callback: (val) => val.toFixed(1) + '%',
                             },
@@ -924,12 +948,12 @@
             const ctx = canvas.getContext('2d');
 
             const optGradient = ctx.createLinearGradient(0, 0, 0, 400);
-            optGradient.addColorStop(0, 'rgba(168, 85, 247, 0.4)');
-            optGradient.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+            optGradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+            optGradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
 
             const userGradient = ctx.createLinearGradient(0, 0, 0, 400);
-            userGradient.addColorStop(0, 'rgba(56, 189, 248, 0.3)');
-            userGradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+            userGradient.addColorStop(0, 'rgba(46, 125, 91, 0.25)');
+            userGradient.addColorStop(1, 'rgba(46, 125, 91, 0.0)');
 
             currentChart = new Chart(ctx, {
                 type: 'line',
@@ -939,7 +963,7 @@
                         {
                             label: 'Optimal Portfolio',
                             data: toPercent(chartData.optimal_portfolio),
-                            borderColor: '#a855f7',
+                            borderColor: '#3b82f6',
                             backgroundColor: optGradient,
                             borderWidth: 3,
                             fill: true,
@@ -950,7 +974,7 @@
                         {
                             label: 'Your Portfolio',
                             data: toPercent(chartData.user_portfolio),
-                            borderColor: '#38bdf8',
+                            borderColor: '#2e7d5b',
                             backgroundColor: userGradient,
                             borderWidth: 3,
                             fill: true,
@@ -983,17 +1007,17 @@
                         legend: {
                             position: 'top',
                             labels: {
-                                color: '#f8fafc',
+                                color: '#1a2e22',
                                 font: { family: 'Inter', size: 13, weight: 500 },
                                 usePointStyle: true,
                                 boxWidth: 8
                             }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleColor: '#94a3b8',
-                            bodyColor: '#f8fafc',
-                            borderColor: 'rgba(255,255,255,0.1)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+                            titleColor: '#5a7a66',
+                            bodyColor: '#1a2e22',
+                            borderColor: 'rgba(45,94,63,0.15)',
                             borderWidth: 1,
                             padding: 12,
                             cornerRadius: 8,
@@ -1006,13 +1030,13 @@
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
-                            ticks: { color: '#64748b', maxTicksLimit: 8, font: { family: 'Inter' } }
+                            grid: { color: 'rgba(45,94,63,0.07)', drawBorder: false },
+                            ticks: { color: '#5a7a66', maxTicksLimit: 8, font: { family: 'Inter' } }
                         },
                         y: {
-                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            grid: { color: 'rgba(45,94,63,0.07)', drawBorder: false },
                             ticks: {
-                                color: '#64748b',
+                                color: '#5a7a66',
                                 font: { family: 'Inter' },
                                 callback: (val) => val + '%'
                             }
@@ -1039,7 +1063,7 @@
             const toPercent = arr => arr.map(v => v * 100);
             const ctx = assetCanvas.getContext('2d');
 
-            const colors = ['#f43f5e', '#3b82f6', '#eab308', '#22c55e', '#a855f7', '#fb923c'];
+            const colors = ['#2e7d5b', '#3b82f6', '#d4a017', '#e05263', '#6b9e7e', '#8b5cf6'];
             const datasets = [];
             let colorIdx = 0;
 
@@ -1075,17 +1099,17 @@
                         legend: {
                             position: 'top',
                             labels: {
-                                color: '#f8fafc',
+                                color: '#1a2e22',
                                 font: { family: 'Inter', size: 13, weight: 500 },
                                 usePointStyle: true,
                                 boxWidth: 8
                             }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleColor: '#94a3b8',
-                            bodyColor: '#f8fafc',
-                            borderColor: 'rgba(255,255,255,0.1)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+                            titleColor: '#5a7a66',
+                            bodyColor: '#1a2e22',
+                            borderColor: 'rgba(45,94,63,0.15)',
                             borderWidth: 1,
                             padding: 12,
                             cornerRadius: 8,
@@ -1098,13 +1122,13 @@
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
-                            ticks: { color: '#64748b', maxTicksLimit: 8, font: { family: 'Inter' } }
+                            grid: { color: 'rgba(45,94,63,0.07)', drawBorder: false },
+                            ticks: { color: '#5a7a66', maxTicksLimit: 8, font: { family: 'Inter' } }
                         },
                         y: {
-                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            grid: { color: 'rgba(45,94,63,0.07)', drawBorder: false },
                             ticks: {
-                                color: '#64748b',
+                                color: '#5a7a66',
                                 font: { family: 'Inter' },
                                 callback: (val) => val + '%'
                             }
