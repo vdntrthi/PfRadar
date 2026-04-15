@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PfRadar — Portfolio Optimization Engine</title>
-    <meta name="description" content="Analyze and optimize your Indian stock portfolio with real-time CAGR, efficient frontier, and risk-return analytics.">
+    <meta name="description"
+        content="Analyze and optimize your Indian stock portfolio with real-time CAGR, efficient frontier, and risk-return analytics.">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
         rel="stylesheet">
@@ -380,6 +381,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -391,6 +393,7 @@
                 opacity: 0;
                 transform: translateY(12px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -411,12 +414,12 @@
             font-size: 0.85rem;
             transition: all 0.2s;
         }
-        
+
         .remove-btn:hover {
             background: #ef4444;
             color: white;
         }
-        
+
         .table-input {
             width: 100%;
             max-width: 120px;
@@ -429,7 +432,7 @@
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        
+
         .table-input:focus {
             border-color: var(--accent-user);
             box-shadow: 0 0 0 3px rgba(46, 125, 91, 0.12);
@@ -439,13 +442,16 @@
             h1 {
                 font-size: 2.25rem;
             }
+
             .chart-container {
                 height: 400px;
                 padding: 1rem;
             }
+
             .metrics-grid {
                 grid-template-columns: 1fr;
             }
+
             .period-toggle {
                 flex-wrap: wrap;
             }
@@ -513,7 +519,7 @@
             right: 0;
             background-color: #fff;
             border-radius: 0 0 12px 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             max-height: 250px;
             overflow-y: auto;
             display: none;
@@ -555,7 +561,8 @@
             <div class="input-group" style="flex: 2;">
                 <label class="input-label">Select Ticker</label>
                 <div class="autocomplete-container">
-                    <input id="tickerSelect" placeholder="Search or type ticker (e.g., RELIANCE.NS)" class="input-field" autocomplete="off">
+                    <input id="tickerSelect" placeholder="Search or type ticker (e.g., RELIANCE.NS)" class="input-field"
+                        autocomplete="off">
                     <div id="autocompleteList" class="autocomplete-items"></div>
                 </div>
             </div>
@@ -565,35 +572,47 @@
         </div>
 
         <!-- Tickers Table and Controls -->
-        <div id="portfolioControls" style="display: none; background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-card); position: relative; z-index: 1;">
+        <div id="portfolioControls"
+            style="display: none; background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-card); position: relative; z-index: 1;">
             <div style="overflow-x: auto; margin-bottom: 1.5rem;">
                 <table class="tickers-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <th style="padding: 0.75rem; color: var(--text-secondary); font-weight: 500;">Ticker</th>
-                            <th style="padding: 0.75rem; color: var(--text-secondary); font-weight: 500;">Weight (0.0 - 1.0)</th>
-                            <th style="padding: 0.75rem; color: var(--text-secondary); font-weight: 500; text-align: right;">Action</th>
+                            <th style="padding: 0.75rem; color: var(--text-secondary); font-weight: 500;">Weight (0.0 -
+                                1.0)</th>
+                            <th
+                                style="padding: 0.75rem; color: var(--text-secondary); font-weight: 500; text-align: right;">
+                                Action</th>
                         </tr>
                     </thead>
                     <tbody id="tickersTableBody">
                     </tbody>
                 </table>
-                <div id="weightWarning" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem; display: none;">Total weight must equal exactly 1.0</div>
+                <div id="weightWarning" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem; display: none;">
+                    Total weight must equal exactly 1.0</div>
             </div>
-            
-            <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; justify-content: space-between; border-top: 1px solid rgba(45,94,63,0.08); padding-top: 1.5rem;">
+
+            <div
+                style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; justify-content: space-between; border-top: 1px solid rgba(45,94,63,0.08); padding-top: 1.5rem;">
                 <div style="display: flex; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap;">
                     <div class="input-group risk-group" style="margin-bottom: 0;">
-                        <label class="input-label">Risk Profile: <strong id="riskLabel" style="color: var(--accent-user);">0.5</strong></label>
-                        <input type="range" id="riskInput" min="0" max="1" step="0.05" value="0.5" oninput="document.getElementById('riskLabel').innerText = this.value" class="risk-slider">
+                        <label class="input-label">Risk Profile: <strong id="riskLabel"
+                                style="color: var(--accent-user);">0.5</strong></label>
+                        <input type="range" id="riskInput" min="0" max="1" step="0.05" value="0.5"
+                            oninput="document.getElementById('riskLabel').innerText = this.value" class="risk-slider">
                     </div>
                     <div class="period-toggle-group">
                         <label class="input-label">Returns Period</label>
                         <div class="period-toggle" id="periodToggle">
-                            <button type="button" class="period-btn" data-period="1M" onclick="selectPeriod('1M')">1M</button>
-                            <button type="button" class="period-btn" data-period="3M" onclick="selectPeriod('3M')">3M</button>
-                            <button type="button" class="period-btn" data-period="6M" onclick="selectPeriod('6M')">6M</button>
-                            <button type="button" class="period-btn active" data-period="12M" onclick="selectPeriod('12M')">12M</button>
+                            <button type="button" class="period-btn" data-period="1M"
+                                onclick="selectPeriod('1M')">1M</button>
+                            <button type="button" class="period-btn" data-period="3M"
+                                onclick="selectPeriod('3M')">3M</button>
+                            <button type="button" class="period-btn" data-period="6M"
+                                onclick="selectPeriod('6M')">6M</button>
+                            <button type="button" class="period-btn active" data-period="12M"
+                                onclick="selectPeriod('12M')">12M</button>
                         </div>
                     </div>
                 </div>
@@ -606,89 +625,90 @@
         <div id="resultsContainer" style="display: none; width: 100%;">
             <!-- Metrics Grid: Return / Risk / CAGR -->
             <div class="metrics-grid" id="metricsGrid">
-            <div class="metric-card">
-                <div class="metric-title">
-                    <div class="dot dot-user"></div><span id="userReturnTitle">Your Portfolio Return (12M)</span>
+                <div class="metric-card">
+                    <div class="metric-title">
+                        <div class="dot dot-user"></div><span id="userReturnTitle">Your Portfolio Return (12M)</span>
+                    </div>
+                    <div class="metric-value" id="userReturn">--</div>
+                    <div class="metric-change" id="userRisk">--</div>
                 </div>
-                <div class="metric-value" id="userReturn">--</div>
-                <div class="metric-change" id="userRisk">--</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-title">
-                    <div class="dot dot-optimal"></div><span id="optReturnTitle">Optimal Portfolio Return (12M)</span>
+                <div class="metric-card">
+                    <div class="metric-title">
+                        <div class="dot dot-optimal"></div><span id="optReturnTitle">Optimal Portfolio Return
+                            (12M)</span>
+                    </div>
+                    <div class="metric-value" id="optReturn">--</div>
+                    <div class="metric-change" id="optRisk">--</div>
+                    <div class="metric-sub" id="optWeights">--</div>
                 </div>
-                <div class="metric-value" id="optReturn">--</div>
-                <div class="metric-change" id="optRisk">--</div>
-                <div class="metric-sub" id="optWeights">--</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-title">
-                    <div class="dot dot-cagr-user"></div>Your Portfolio CAGR
+                <div class="metric-card">
+                    <div class="metric-title">
+                        <div class="dot dot-cagr-user"></div>Your Portfolio CAGR
+                    </div>
+                    <div class="metric-value" id="userCagr">--</div>
+                    <div class="metric-sub" id="userCagrSub">Compound annual growth over full history</div>
                 </div>
-                <div class="metric-value" id="userCagr">--</div>
-                <div class="metric-sub" id="userCagrSub">Compound annual growth over full history</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-title">
-                    <div class="dot dot-cagr-opt"></div>Optimal Portfolio CAGR
+                <div class="metric-card">
+                    <div class="metric-title">
+                        <div class="dot dot-cagr-opt"></div>Optimal Portfolio CAGR
+                    </div>
+                    <div class="metric-value" id="optCagr">--</div>
+                    <div class="metric-sub" id="optCagrSub">Compound annual growth over full history</div>
                 </div>
-                <div class="metric-value" id="optCagr">--</div>
-                <div class="metric-sub" id="optCagrSub">Compound annual growth over full history</div>
             </div>
-        </div>
 
-        <!-- Efficient Frontier Chart -->
-        <div class="chart-container" style="height: 550px;">
-            <h2><span class="icon">📊</span> Efficient Frontier</h2>
-            <div class="frontier-legend" id="frontierLegend">
-                <div class="frontier-legend-item">
-                    <div class="swatch" style="background: rgba(148, 163, 184, 0.35);"></div>Random Portfolios
+            <!-- Efficient Frontier Chart -->
+            <div class="chart-container" style="height: 550px;">
+                <h2><span class="icon">📊</span> Efficient Frontier</h2>
+                <div class="frontier-legend" id="frontierLegend">
+                    <div class="frontier-legend-item">
+                        <div class="swatch" style="background: rgba(148, 163, 184, 0.35);"></div>Random Portfolios
+                    </div>
+                    <div class="frontier-legend-item">
+                        <div class="swatch circle" style="background: var(--accent-user);"></div>Your Portfolio
+                    </div>
+                    <div class="frontier-legend-item">
+                        <div class="swatch circle" style="background: var(--accent-optimal);"></div>Optimized Portfolio
+                    </div>
+                    <div class="frontier-legend-item">
+                        <div class="swatch circle" style="background: var(--accent-minvar);"></div>Min Variance
+                    </div>
+                    <div class="frontier-legend-item">
+                        <div class="swatch circle" style="background: var(--accent-maxsharpe);"></div>Max Sharpe
+                    </div>
                 </div>
-                <div class="frontier-legend-item">
-                    <div class="swatch circle" style="background: var(--accent-user);"></div>Your Portfolio
-                </div>
-                <div class="frontier-legend-item">
-                    <div class="swatch circle" style="background: var(--accent-optimal);"></div>Optimized Portfolio
-                </div>
-                <div class="frontier-legend-item">
-                    <div class="swatch circle" style="background: var(--accent-minvar);"></div>Min Variance
-                </div>
-                <div class="frontier-legend-item">
-                    <div class="swatch circle" style="background: var(--accent-maxsharpe);"></div>Max Sharpe
+                <div class="chart-canvas-wrapper">
+                    <div class="loading" id="loaderFrontier" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Computing efficient frontier...</span>
+                    </div>
+                    <canvas id="frontierChart" style="display: none;"></canvas>
                 </div>
             </div>
-            <div class="chart-canvas-wrapper">
-                <div class="loading" id="loaderFrontier" style="display: none;">
-                    <div class="spinner"></div>
-                    <span>Computing efficient frontier...</span>
-                </div>
-                <canvas id="frontierChart" style="display: none;"></canvas>
-            </div>
-        </div>
 
-        <!-- Performance Chart -->
-        <div class="chart-container">
-            <h2 id="perfChartTitle"><span class="icon">📈</span> Portfolio Performance (12M)</h2>
-            <div class="chart-canvas-wrapper">
-                <div class="loading" id="loader" style="display: none;">
-                    <div class="spinner"></div>
-                    <span>Loading live insights...</span>
+            <!-- Performance Chart -->
+            <div class="chart-container">
+                <h2 id="perfChartTitle"><span class="icon">📈</span> Portfolio Performance (12M)</h2>
+                <div class="chart-canvas-wrapper">
+                    <div class="loading" id="loader" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Loading live insights...</span>
+                    </div>
+                    <canvas id="portfolioChart" style="display: none;"></canvas>
                 </div>
-                <canvas id="portfolioChart" style="display: none;"></canvas>
             </div>
-        </div>
 
-        <!-- Asset Breakdown Chart -->
-        <div class="chart-container">
-            <h2 id="assetChartTitle"><span class="icon">🏛️</span> Individual Asset Performance (12M)</h2>
-            <div class="chart-canvas-wrapper">
-                <div class="loading" id="loaderAsset" style="display: none;">
-                    <div class="spinner"></div>
-                    <span>Loading asset insights...</span>
+            <!-- Asset Breakdown Chart -->
+            <div class="chart-container">
+                <h2 id="assetChartTitle"><span class="icon">🏛️</span> Individual Asset Performance (12M)</h2>
+                <div class="chart-canvas-wrapper">
+                    <div class="loading" id="loaderAsset" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Loading asset insights...</span>
+                    </div>
+                    <canvas id="assetChart" style="display: none;"></canvas>
                 </div>
-                <canvas id="assetChart" style="display: none;"></canvas>
             </div>
-        </div>
         </div>
     </div>
 
@@ -1101,7 +1121,7 @@
             const tickerInput = document.getElementById('tickerSelect');
             const autocompleteList = document.getElementById('autocompleteList');
 
-            tickerInput.addEventListener('input', function() {
+            tickerInput.addEventListener('input', function () {
                 const val = this.value.toUpperCase();
                 autocompleteList.innerHTML = '';
                 if (!val) {
@@ -1121,7 +1141,7 @@
                         const middle = match.substring(index, index + val.length);
                         const after = match.substring(index + val.length);
                         item.innerHTML = `${before}<strong>${middle}</strong>${after}`;
-                        
+
                         item.addEventListener('click', () => {
                             tickerInput.value = match;
                             autocompleteList.style.display = 'none';
@@ -1209,7 +1229,7 @@
         function renderTable() {
             const tbody = document.getElementById('tickersTableBody');
             tbody.innerHTML = '';
-            
+
             if (selectedPortfolio.length === 0) {
                 document.getElementById('portfolioControls').style.display = 'none';
                 return;
@@ -1263,7 +1283,7 @@
         function handleFetchReport() {
             const sum = selectedPortfolio.reduce((acc, p) => acc + (parseFloat(p.weight) || 0), 0);
             const warningEl = document.getElementById('weightWarning');
-            if (Math.abs(sum - 1.0) > 0.05) { 
+            if (Math.abs(sum - 1.0) > 0.05) {
                 warningEl.innerText = `Total weight must equal exactly 1.0. Current: ${sum.toFixed(3)}`;
                 warningEl.style.display = 'block';
                 return;
@@ -1273,7 +1293,7 @@
             const tickers = selectedPortfolio.map(p => p.ticker).join(', ');
             const weights = selectedPortfolio.map(p => p.weight).join(', ');
             const risk = document.getElementById('riskInput').value;
-            
+
             document.getElementById('resultsContainer').style.display = 'block';
 
             fetchReport(tickers, weights, risk);
@@ -1310,8 +1330,8 @@
                     const periodLabel = period === '12M' ? '1Y' : period;
 
                     // Update metric card titles with the period
-                    document.getElementById('userReturnTitle').textContent = `Your Portfolio Return (${periodLabel})`;
-                    document.getElementById('optReturnTitle').textContent = `Optimal Portfolio Return (${periodLabel})`;
+                    document.getElementById('userReturnTitle').textContent = `Your Portfolio Return`;
+                    document.getElementById('optReturnTitle').textContent = `Optimal Portfolio Return`;
 
                     // Period-specific return cards
                     const userPeriodReturn = chartData.period_return_user;
