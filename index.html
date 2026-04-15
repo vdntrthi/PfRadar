@@ -187,7 +187,24 @@
             width: 100%;
             position: relative;
             box-shadow: var(--shadow-card);
-            margin-bottom: calc(2rem + 30px);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chart-container .chart-canvas-wrapper {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+        }
+
+        .chart-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .chart-container h2 {
@@ -199,6 +216,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-shrink: 0;
         }
 
         .chart-container h2 .icon {
@@ -329,6 +347,7 @@
             flex-wrap: wrap;
             margin-bottom: 1rem;
             font-size: 0.85rem;
+            flex-shrink: 0;
         }
 
         .frontier-legend-item {
@@ -590,31 +609,37 @@
                     <div class="swatch circle" style="background: var(--accent-maxsharpe);"></div>Max Sharpe
                 </div>
             </div>
-            <div class="loading" id="loaderFrontier" style="display: none;">
-                <div class="spinner"></div>
-                <span>Computing efficient frontier...</span>
+            <div class="chart-canvas-wrapper">
+                <div class="loading" id="loaderFrontier" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Computing efficient frontier...</span>
+                </div>
+                <canvas id="frontierChart" style="display: none;"></canvas>
             </div>
-            <canvas id="frontierChart" style="display: none;"></canvas>
         </div>
 
         <!-- Performance Chart -->
         <div class="chart-container">
             <h2 id="perfChartTitle"><span class="icon">📈</span> Portfolio Performance (12M)</h2>
-            <div class="loading" id="loader" style="display: none;">
-                <div class="spinner"></div>
-                <span>Loading live insights...</span>
+            <div class="chart-canvas-wrapper">
+                <div class="loading" id="loader" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Loading live insights...</span>
+                </div>
+                <canvas id="portfolioChart" style="display: none;"></canvas>
             </div>
-            <canvas id="portfolioChart" style="display: none;"></canvas>
         </div>
 
         <!-- Asset Breakdown Chart -->
         <div class="chart-container">
             <h2 id="assetChartTitle"><span class="icon">🏛️</span> Individual Asset Performance (12M)</h2>
-            <div class="loading" id="loaderAsset" style="display: none;">
-                <div class="spinner"></div>
-                <span>Loading asset insights...</span>
+            <div class="chart-canvas-wrapper">
+                <div class="loading" id="loaderAsset" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Loading asset insights...</span>
+                </div>
+                <canvas id="assetChart" style="display: none;"></canvas>
             </div>
-            <canvas id="assetChart" style="display: none;"></canvas>
         </div>
         </div>
     </div>
