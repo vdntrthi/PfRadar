@@ -125,3 +125,9 @@ def portfolio_daily_returns(
     w = np.asarray(weights, dtype=float).reshape(1, -1)
     raw = (asset_returns.values * w).sum(axis=1)
     return pd.Series(raw, index=asset_returns.index, name="portfolio")
+
+def calculate_simple_return(invested: float, current: float) -> float:
+    """Calculate simple return percentage."""
+    if invested <= 0:
+        return 0.0
+    return ((current - invested) / invested) * 100.0

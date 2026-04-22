@@ -16,6 +16,7 @@ import pandas as pd
 import yfinance as yf
 
 from models.exceptions import DataFetchError, InsufficientHistoryError, InvalidTickerError
+from models.schemas import TopStock, MarketMonitorSnapshot
 
 if TYPE_CHECKING:
     pass
@@ -208,3 +209,25 @@ def fetch_aligned_prices(
     used = list(df.columns)
     logger.info("Aligned prices: %s rows, symbols=%s", len(df), used)
     return df.astype(float), used
+
+def get_top_stocks(limit: int = 5) -> list[TopStock]:
+    """Fetch top-performing stocks (mock)."""
+    return [
+        TopStock(symbol="RELIANCE.NS", name="Reliance Ind", returns_percent=12.5, volume=1500000),
+        TopStock(symbol="TCS.NS", name="TCS", returns_percent=8.2, volume=900000),
+        TopStock(symbol="INFY.NS", name="Infosys", returns_percent=5.4, volume=1200000),
+        TopStock(symbol="HDFCBANK.NS", name="HDFC Bank", returns_percent=4.1, volume=2100000),
+        TopStock(symbol="ICICIBANK.NS", name="ICICI Bank", returns_percent=3.8, volume=1800000),
+    ][:limit]
+
+def get_market_monitor() -> MarketMonitorSnapshot:
+    """Provide snapshot of market indices and sectors (mock)."""
+    return MarketMonitorSnapshot(
+        indices={"NIFTY 50": 22000.5, "SENSEX": 72000.1, "BANKNIFTY": 48000.2},
+        top_gainers=get_top_stocks(3),
+        top_losers=[
+            TopStock(symbol="PAYTM.NS", name="Paytm", returns_percent=-5.5, volume=5000000),
+            TopStock(symbol="WIPRO.NS", name="Wipro", returns_percent=-2.1, volume=800000)
+        ],
+        sector_performance={"IT": 2.5, "Banking": -1.2, "Pharma": 0.8, "FMCG": 1.1}
+    )

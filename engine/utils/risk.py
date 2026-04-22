@@ -137,3 +137,18 @@ def estimate_daily_mu_cov(
     if lam < -1e-7:
         raise RiskModelError(f"Covariance not PSD after ridge; min_eig={lam}")
     return mu_d, cov_d, cols
+
+def compute_risk_weightage(asset_weights: dict[str, float], volatilities: dict[str, float]) -> dict[str, float]:
+    """Compute risk contribution per asset (mocked as weight * volatility for simplicity)."""
+    risk_contributions = {}
+    total_risk = 0.0
+    for asset, weight in asset_weights.items():
+        vol = volatilities.get(asset, 0.1)
+        contrib = weight * vol
+        risk_contributions[asset] = contrib
+        total_risk += contrib
+        
+    if total_risk == 0:
+        return {k: 0.0 for k in asset_weights}
+        
+    return {k: (v / total_risk) * 100 for k, v in risk_contributions.items()}

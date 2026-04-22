@@ -20,7 +20,7 @@ pip install -r requirements.txt
    python app.py
    ```
    *This starts an ultra-fast REST backend utilizing Uvicorn and hosts the front-end dashboard concurrently.*
-
+// run using uvicorn not python app.py
 2. **Access the Dashboard**
    Once the server is running, open your web browser and navigate to:
    **http://localhost:8000**

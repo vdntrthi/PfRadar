@@ -316,4 +316,14 @@ def build_full_report(
         },
     )
 
-    return report.to_json_dict()
+    report_dict = report.to_json_dict()
+
+    # 👇 ADD THESE TWO LINES
+    report_dict["asset_allocation"] = report_dict["optimal_weights"]
+    report_dict["risk_weightage"] = (
+        report_dict["target_risk_portfolio"]
+    if report_dict["target_risk_portfolio"] is not None
+    else report_dict["optimal_weights"]
+)
+
+    return report_dict

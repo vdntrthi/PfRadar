@@ -69,3 +69,39 @@ def plot_efficient_frontier_cloud(
     fig.savefig(path, dpi=150)
     plt.close(fig)
     logger.info("Saved frontier plot to %s", path)
+
+def plot_asset_allocation(allocation: dict[str, float], path: str | Path) -> None:
+    """Generate asset allocation pie chart."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    
+    fig, ax = plt.subplots(figsize=(6, 6))
+    labels = list(allocation.keys())
+    sizes = list(allocation.values())
+    
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
+    ax.axis('equal')
+    ax.set_title("Asset Allocation")
+    
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    logger.info("Saved asset allocation plot to %s", path)
+
+def plot_risk_weightage(risk_weights: dict[str, float], path: str | Path) -> None:
+    """Generate risk weightage pie chart."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    
+    fig, ax = plt.subplots(figsize=(6, 6))
+    labels = list(risk_weights.keys())
+    sizes = list(risk_weights.values())
+    
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=plt.cm.Set3.colors)
+    ax.axis('equal')
+    ax.set_title("Risk Weightage by Asset")
+    
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    logger.info("Saved risk weightage plot to %s", path)

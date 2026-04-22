@@ -45,3 +45,30 @@ class FullPortfolioReport(BaseModel):
     def to_json_dict(self) -> dict[str, Any]:
         """Ensure JSON-safe (no NaN)."""
         return self.model_dump(mode="json")
+
+class TopStock(BaseModel):
+    symbol: str
+    name: str
+    returns_percent: float
+    volume: float
+
+class MutualFundHolding(BaseModel):
+    scheme_name: str
+    units: float
+    average_nav: float
+    current_nav: float | None = None
+    invested_value: float | None = None
+    current_value: float | None = None
+
+class Portfolio(BaseModel):
+    funds: list[MutualFundHolding]
+    total_invested: float
+    total_current_value: float
+    total_profit_loss: float
+    overall_return_percent: float
+
+class MarketMonitorSnapshot(BaseModel):
+    indices: dict[str, float]
+    top_gainers: list[TopStock]
+    top_losers: list[TopStock]
+    sector_performance: dict[str, float]
