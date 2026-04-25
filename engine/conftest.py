@@ -1,4 +1,4 @@
-"""Pytest bootstrap: engine root on sys.path."""
+""" Pytest bootstrap: engine root on sys.path. """
 
 from __future__ import annotations
 

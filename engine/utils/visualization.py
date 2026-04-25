@@ -89,7 +89,7 @@ def plot_asset_allocation(allocation: dict[str, float], path: str | Path) -> Non
     logger.info("Saved asset allocation plot to %s", path)
 
 def plot_risk_weightage(risk_weights: dict[str, float], path: str | Path) -> None:
-    """Generate risk weightage pie chart."""
+    """ Generate risk weightage pie chart. """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     

@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "engine"))
 
 from services.report import build_full_report
 
-print("Generating demo report...")
+print(" Generating demo report...")
 
 try:
     report_data = build_full_report(

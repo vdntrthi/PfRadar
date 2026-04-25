@@ -26,7 +26,7 @@ def get_report(tickers: str, weights: str, risk: float | None = None, period: st
         w_list = [float(w.strip()) for w in weights.split(",") if w.strip()]
         
         if len(t_list) != len(w_list):
-            raise HTTPException(status_code=400, detail="Number of tickers must match number of weights")
+            raise HTTPException(status_code=400, detail=" Number of tickers must match number of weights ")
         
         valid_periods = {"1M", "3M", "6M", "12M"}
         if period not in valid_periods:

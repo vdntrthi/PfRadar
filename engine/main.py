@@ -146,7 +146,7 @@ def main() -> int:
     p_demo.add_argument(
         "--plot",
         default="",
-        help="If set, PNG path to save efficient frontier figure (e.g. frontier.png)",
+        help=" If set, PNG path to save efficient frontier figure (e.g. frontier.png) ",
     )
     p_demo.add_argument("--risk", type=float, default=None, help="Risk score (0 to 1)")
     p_demo.set_defaults(func=_cmd_demo)
