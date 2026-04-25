@@ -11,7 +11,7 @@ print("Generating demo report...")
 
 try:
     report_data = build_full_report(
-        tickers=['HAVELLS.BO', 'TCS.NS', 'INFY.NS'],
+        tickers=['RELIANCE.NS', 'TCS.NS', 'INFY.NS'],
         target_weights={'RELIANCE.NS': 0.4, 'TCS.NS': 0.3, 'INFY.NS': 0.3}
     )
     

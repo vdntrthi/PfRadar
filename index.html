@@ -616,9 +616,14 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="handleFetchReport()" class="analyze-btn" id="analyzeBtn">
-                    Analyze Live
-                </button>
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="handleFetchReport()" class="analyze-btn" id="analyzeBtn">
+                        Analyze Live
+                    </button>
+                    <button onclick="handleGenerateReport()" class="analyze-btn" id="generateReportBtn" style="background: rgba(255, 255, 255, 0.9); color: var(--accent-user); border: 1px solid var(--accent-user);">
+                        Generate Report
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1300,6 +1305,24 @@
             const cls = value >= 0 ? 'cagr-positive' : 'cagr-negative';
             const sign = value >= 0 ? '+' : '';
             return { text: `${sign}${pct}%`, cls };
+        }
+
+        function handleGenerateReport() {
+            const sum = selectedPortfolio.reduce((acc, p) => acc + (parseFloat(p.weight) || 0), 0);
+            const warningEl = document.getElementById('weightWarning');
+            if (Math.abs(sum - 1.0) > 0.05) {
+                warningEl.innerText = `Total weight must equal exactly 1.0. Current: ${sum.toFixed(3)}`;
+                warningEl.style.display = 'block';
+                return;
+            }
+            warningEl.style.display = 'none';
+
+            const tickers = selectedPortfolio.map(p => p.ticker).join(',');
+            const weights = selectedPortfolio.map(p => p.weight).join(',');
+            const risk = document.getElementById('riskInput').value;
+
+            const url = `/api/download_report?tickers=${encodeURIComponent(tickers)}&weights=${encodeURIComponent(weights)}&risk=${encodeURIComponent(risk)}&period=${encodeURIComponent(selectedPeriod)}`;
+            window.open(url, '_blank');
         }
 
         function handleFetchReport() {
