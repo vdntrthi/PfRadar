@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Portfolio Health Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #1a2e22;
+            margin: 40px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #2e7d5b;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2e7d5b;
+            margin: 0;
+        }
+
+        .sub {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-top: 30px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 15px;
+        }
+
+        .good {
+            color: #2e7d5b;
+            font-weight: bold;
+        }
+
+        .warn {
+            color: #d4a017;
+            font-weight: bold;
+        }
+
+        .bad {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f5f7f6;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>PF Radar Portfolio Health Report</h1>
+        <div class="sub">
+            Generated for {{USER_NAME}} | {{DATE}}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Executive Summary</h2>
+
+        <div class="card">
+            Portfolio Health Score:
+            <span class="good">{{HEALTH_SCORE}} / 100</span>
+        </div>
+
+        <div class="card">
+            Return Outlook:
+            <span class="good">{{RETURN_COMMENT}}</span>
+        </div>
+
+        <div class="card">
+            Risk Outlook:
+            <span class="warn">{{RISK_COMMENT}}</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Diagnostic Metrics</h2>
+
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Ideal Range</th>
+                <th>Status</th>
+            </tr>
+
+            <tr>
+                <td>CAGR</td>
+                <td>{{CAGR}}%</td>
+                <td>>12%</td>
+                <td>{{CAGR_STATUS}}</td>
+            </tr>
+
+            <tr>
+                <td>Volatility</td>
+                <td>{{VOL}}%</td>
+                <td>
+                    <18%< /td>
+                <td>{{VOL_STATUS}}</td>
+            </tr>
+
+            <tr>
+                <td>Sharpe Ratio</td>
+                <td>{{SHARPE}}</td>
+                <td>>1.0</td>
+                <td>{{SHARPE_STATUS}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Suggested Actions</h2>
+
+        <div class="card">1. {{SUGGESTION_1}}</div>
+        <div class="card">2. {{SUGGESTION_2}}</div>
+        <div class="card">3. {{SUGGESTION_3}}</div>
+    </div>
+
+    <div class="section">
+        <h2>Recommended Allocation</h2>
+        <div class="card">
+            {{ALLOCATION_TEXT}}
+        </div>
+    </div>
+
+    <div class="footer">
+        Confidential | For educational purposes only
+    </div>
+
+</body>
+
+</html>

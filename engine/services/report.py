@@ -317,13 +317,33 @@ def build_full_report(
     )
 
     report_dict = report.to_json_dict()
+    # Final portfolio weights being used
+    final_weights = (
+            report_dict["target_risk_portfolio"]
+            if report_dict["target_risk_portfolio"] is not None
+            else report_dict["optimal_weights"]
+        )
 
-    # 👇 ADD THESE TWO LINES
-    report_dict["asset_allocation"] = report_dict["optimal_weights"]
-    report_dict["risk_weightage"] = (
-        report_dict["target_risk_portfolio"]
-    if report_dict["target_risk_portfolio"] is not None
-    else report_dict["optimal_weights"]
-)
+        # Asset allocation = actual portfolio weights
+    report_dict["asset_allocation"] = final_weights
 
+        # ---------- REAL RISK CONTRIBUTION ----------
+    tickers_rc = list(final_weights.keys())
+    w = np.array([final_weights[t] for t in tickers_rc], dtype=float)
+
+        # Match covariance matrix ordering
+    cov = np.array(report_dict["covariance_matrix"], dtype=float)
+
+    portfolio_var = float(w.T @ cov @ w)
+
+    if portfolio_var > 1e-12:
+        marginal = cov @ w
+        rc = (w * marginal) / portfolio_var
+    else:
+        rc = np.ones(len(w)) / len(w)
+
+    report_dict["risk_weightage"] = {
+        tickers_rc[i]: float(round(rc[i], 8))
+        for i in range(len(tickers_rc))
+    }
     return report_dict

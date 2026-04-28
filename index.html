@@ -546,6 +546,76 @@
             border-bottom-left-radius: 0;
             border-bottom-right-radius: 0;
         }
+
+        .info-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 6px;
+        }
+
+        .info-btn {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(46, 125, 91, 0.12);
+            color: #2e7d5b;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info-tooltip {
+            position: absolute;
+            top: 26px;
+            left: 0;
+            width: 240px;
+            background: white;
+            color: #1a2e22;
+            padding: 10px 12px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            font-size: 12px;
+            line-height: 1.45;
+            z-index: 999;
+            display: none;
+        }
+
+        .info-wrap:hover .info-tooltip,
+        .info-wrap.active .info-tooltip {
+            display: block;
+        }
+
+        .metric-title,
+        .chart-container h2 {
+            overflow: visible;
+        }
+
+        .metrics-grid {
+            overflow: visible;
+        }
+
+        .metric-card {
+            position: relative;
+            overflow: visible;
+        }
+
+        .metric-card:hover {
+            z-index: 50;
+        }
+
+        .info-wrap {
+            position: relative;
+            z-index: 1000;
+        }
+
+        .info-tooltip {
+            z-index: 9999;
+        }
     </style>
 </head>
 
@@ -633,15 +703,27 @@
             <div class="metrics-grid" id="metricsGrid">
                 <div class="metric-card">
                     <div class="metric-title">
-                        <div class="dot dot-user"></div><span id="userReturnTitle">Your Portfolio Return (12M)</span>
+                        <div class="dot dot-user"></div><span id="userReturnTitle">Your Portfolio Return</span>
+                        <div class="info-wrap">
+                            <button class="info-btn">i</button>
+                            <div class="info-tooltip">
+                                Total return of your selected portfolio over the chosen time period based on your
+                                entered weights.
+                            </div>
+                        </div>
                     </div>
                     <div class="metric-value" id="userReturn">--</div>
                     <div class="metric-change" id="userRisk">--</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">
-                        <div class="dot dot-optimal"></div><span id="optReturnTitle">Optimal Portfolio Return
-                            (12M)</span>
+                        <div class="dot dot-optimal"></div><span id="optReturnTitle">Optimal Portfolio Return</span>
+                        <div class="info-wrap">
+                            <button class="info-btn">i</button>
+                            <div class="info-tooltip">
+                                Return of AI-optimized portfolio based on your risk profile.
+                            </div>
+                        </div>
                     </div>
                     <div class="metric-value" id="optReturn">--</div>
                     <div class="metric-change" id="optRisk">--</div>
@@ -649,14 +731,26 @@
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">
-                        <div class="dot dot-cagr-user"></div>Your Portfolio CAGR
+                        <div class="dot dot-cagr-user"></div><span id="userCagrTitle">Your Portfolio CAGR</span>
+                        <div class="info-wrap">
+                            <button class="info-btn">i</button>
+                            <div class="info-tooltip">
+                                Compound annual growth rate of your selected portfolio since inception.
+                            </div>
+                        </div>
                     </div>
                     <div class="metric-value" id="userCagr">--</div>
                     <div class="metric-sub" id="userCagrSub">Compound annual growth over full history</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">
-                        <div class="dot dot-cagr-opt"></div>Optimal Portfolio CAGR
+                        <div class="dot dot-cagr-opt"></div><span id="optCagrTitle">Optimal Portfolio CAGR</span>
+                        <div class="info-wrap">
+                            <button class="info-btn">i</button>
+                            <div class="info-tooltip">
+                                Compound annual growth rate of the optimized portfolio since inception.
+                            </div>
+                        </div>
                     </div>
                     <div class="metric-value" id="optCagr">--</div>
                     <div class="metric-sub" id="optCagrSub">Compound annual growth over full history</div>
@@ -665,7 +759,15 @@
 
             <!-- Efficient Frontier Chart -->
             <div class="chart-container" style="height: 550px;">
-                <h2> Efficient Frontier</h2>
+                <h2>
+                    Efficient Frontier
+                    <div class="info-wrap">
+                        <button class="info-btn">i</button>
+                        <div class="info-tooltip">
+                            Shows risk vs return combinations of thousands of portfolios.
+                        </div>
+                    </div>
+                </h2>
                 <div class="frontier-legend" id="frontierLegend">
                     <div class="frontier-legend-item">
                         <div class="swatch" style="background: rgba(148, 163, 184, 0.35);"></div>Random Portfolios
@@ -719,7 +821,15 @@
             <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
                 <!-- Asset Allocation -->
                 <div class="chart-container" style="flex: 1; min-width: 300px; height: 400px; margin-bottom: 0;">
-                    <h2>Asset Allocation</h2>
+                    <h2>
+                        Asset Allocation
+                        <div class="info-wrap">
+                            <button class="info-btn">i</button>
+                            <div class="info-tooltip">
+                                How capital is distributed across stocks.
+                            </div>
+                        </div>
+                    </h2>
                     <div class="chart-canvas-wrapper">
                         <canvas id="allocationChart"></canvas>
                     </div>
@@ -727,7 +837,15 @@
 
                 <!-- Risk Weightage -->
                 <div class="chart-container" style="flex: 1; min-width: 300px; height: 400px; margin-bottom: 0;">
-                    <h2>Risk Weightage</h2>
+                    <h2>
+                        Risk Contribution
+                        <div class="info-wrap">
+                            <button class="info-btn">i</button>
+                            <div class="info-tooltip">
+                                Contribution of each stock to overall portfolio volatility.
+                            </div>
+                        </div>
+                    </h2>
                     <div class="chart-canvas-wrapper">
                         <canvas id="riskChart"></canvas>
                     </div>
@@ -1347,8 +1465,8 @@
 
         function updateChartTitles(period) {
             const label = period === '12M' ? '1Y' : period;
-            document.getElementById('perfChartTitle').innerHTML = `<span class="icon">📈</span> Portfolio Performance (${label})`;
-            document.getElementById('assetChartTitle').innerHTML = `<span class="icon">🏛️</span> Individual Asset Performance (${label})`;
+            document.getElementById('perfChartTitle').innerHTML = `Portfolio Performance (${label})`;
+            document.getElementById('assetChartTitle').innerHTML = `Individual Asset Performance (${label})`;
         }
 
         function fetchReport(tickers, weights, risk) {
@@ -1430,8 +1548,12 @@
                     // Performance charts
                     drawChart(chartData);
                     drawAssetChart(chartData);
-                    drawAllocationChart(data.optimal_weights);
-                    drawRiskChart(data.target_risk_portfolio || data.optimal_weights);
+                    const finalWeights = data.target_risk_portfolio || data.optimal_weights;
+
+                    // Use the working chart for allocation
+                    drawRiskChart(data.risk_weightage);
+                    // Use old chart on right side temporarily
+                    drawAllocationChart(finalWeights);
                 })
                 .catch(err => {
                     loader.innerHTML = `<span style="color: #ef4444; width:100%; text-align:center;">Error: ${err.message}</span>`;
@@ -1810,14 +1932,31 @@
 
         function drawAllocationChart(weights) {
             if (!weights) return;
+
             const ctx = allocationCanvas.getContext('2d');
+
             if (currentAllocationChart) {
                 currentAllocationChart.destroy();
             }
 
-            const labels = Object.keys(weights);
-            const data = Object.values(weights).map(v => (v * 100).toFixed(2));
-            const colors = ['#2e7d5b', '#3b82f6', '#d4a017', '#e05263', '#6b9e7e', '#8b5cf6', '#f43f5e', '#eab308', '#22c55e', '#a855f7'];
+            const entries = Object.entries(weights)
+                .filter(([_, v]) => Number(v) > 0)
+                .map(([k, v]) => ({
+                    label: k,
+                    value: Number((v * 100).toFixed(2))
+                }));
+
+            const labels = entries.map(x => x.label);
+            const data = entries.map(x => x.value);
+
+            const colors = [
+                '#2e7d5b',
+                '#3b82f6',
+                '#d4a017',
+                '#e05263',
+                '#8b5cf6',
+                '#22c55e'
+            ];
 
             currentAllocationChart = new Chart(ctx, {
                 type: 'pie',
@@ -1830,29 +1969,38 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right', labels: { color: '#5a7a66', font: { family: 'Inter', size: 11 } } },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `${ctx.label}: ${ctx.raw}%`
-                            }
-                        }
-                    }
+                    maintainAspectRatio: false
                 }
             });
         }
 
         function drawRiskChart(weights) {
             if (!weights) return;
+
             const ctx = riskCanvas.getContext('2d');
+
             if (currentRiskChart) {
                 currentRiskChart.destroy();
             }
 
-            const labels = Object.keys(weights);
-            const data = Object.values(weights).map(v => (v * 100).toFixed(2));
-            const colors = ['#e05263', '#d4a017', '#3b82f6', '#2e7d5b', '#8b5cf6', '#6b9e7e', '#f43f5e', '#eab308', '#22c55e', '#a855f7'];
+            const entries = Object.entries(weights)
+                .filter(([_, v]) => Number(v) > 0)
+                .map(([k, v]) => ({
+                    label: k,
+                    value: Number((v * 100).toFixed(2))
+                }));
+
+            const labels = entries.map(x => x.label);
+            const data = entries.map(x => x.value);
+
+            const colors = [
+                '#e05263',
+                '#d4a017',
+                '#3b82f6',
+                '#2e7d5b',
+                '#8b5cf6',
+                '#22c55e'
+            ];
 
             currentRiskChart = new Chart(ctx, {
                 type: 'pie',
@@ -1865,15 +2013,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right', labels: { color: '#5a7a66', font: { family: 'Inter', size: 11 } } },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `${ctx.label}: ${ctx.raw}%`
-                            }
-                        }
-                    }
+                    maintainAspectRatio: false
                 }
             });
         }

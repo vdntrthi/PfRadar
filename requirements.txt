@@ -10,6 +10,7 @@ uvicorn
 pydantic-settings
 python-multipart
 httpx
-
+jinja2
+xhtml2pdf
 # Dev / tests
 pytest>=7.4.0
