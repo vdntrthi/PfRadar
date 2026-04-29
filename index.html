@@ -1983,15 +1983,10 @@
                 currentRiskChart.destroy();
             }
 
-            const entries = Object.entries(weights)
-                .filter(([_, v]) => Number(v) > 0)
-                .map(([k, v]) => ({
-                    label: k,
-                    value: Number((v * 100).toFixed(2))
-                }));
-
-            const labels = entries.map(x => x.label);
-            const data = entries.map(x => x.value);
+            const labels = Object.keys(weights);
+            const data = Object.values(weights).map(v =>
+                Number((v * 100).toFixed(2))
+            );
 
             const colors = [
                 '#e05263',
@@ -1999,21 +1994,55 @@
                 '#3b82f6',
                 '#2e7d5b',
                 '#8b5cf6',
-                '#22c55e'
+                '#22c55e',
+                '#f97316'
             ];
 
             currentRiskChart = new Chart(ctx, {
-                type: 'pie',
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
+                        label: 'Risk Contribution (%)',
                         data: data,
-                        backgroundColor: colors.slice(0, labels.length)
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderRadius: 8,
+                        barThickness: 36
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    return ctx.raw + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
                 }
             });
         }
